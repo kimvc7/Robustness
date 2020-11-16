@@ -104,9 +104,6 @@ with tf.Session() as sess:
   for ii in range(max_num_training_steps):
     x_batch, y_batch = data.train.next_batch(batch_size)
     nat_dict = {model.x_input: x_batch, model.y_input: y_batch}
-
-    x_batch_adv = attack.perturb(x_batch, y_batch, sess)
-    adv_dict = {model.x_input: x_batch_adv, model.y_input: y_batch}
     
     # Output
     if ii % num_output_steps == 0:
