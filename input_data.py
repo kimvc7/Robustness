@@ -1,4 +1,5 @@
-import keras
+import tensorflow as tf
+
 import collections
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import random_seed
@@ -110,10 +111,10 @@ class _DataSet(object):
 
 def load_data_set(validation_size, data_set, seed=None, reshape=True, dtype=dtypes.float32):
   if data_set == "cifar":
-    (X_train, y_train), (X_test, y_test) = keras.datasets.cifar10.load_data()
+    (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
     num_features = X_train.shape[1]*X_train.shape[2]*X_train.shape[3]
   if data_set == "mnist":
-    (X_train, y_train), (X_test, y_test) = keras.datasets.mnist.load_data()
+    (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
     num_features = X_train.shape[1]*X_train.shape[2]
 
   X_val = X_train[:validation_size]
