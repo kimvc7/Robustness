@@ -18,7 +18,7 @@ num_classes = 10
 
 class Model(tf.keras.Model):
 
-  def __init__(self, num_features):
+  def __init__(self, num_features, initial_learning_rate, training_batch_size):
     super(Model, self).__init__()
 
     self.train_variables = []
@@ -38,32 +38,35 @@ class Model(tf.keras.Model):
     self.b3 = self._bias_variable([num_classes])
     self.train_variables += [self.b3]
 
-  def __call__(self, input):
+    # Setting up the optimizer
+    self.learning_rate = \
+      tf.keras.optimizers.schedules.ExponentialDecay(initial_learning_rate, training_batch_size * 5, 0.85, staircase=True)
 
-    self.x_input = input
+    self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
 
+  def feedforward_pass(self, input):
     # Fully connected layers.
-    self.h1 = tf.nn.relu(tf.matmul(self.x_input, self.W1) + self.b1)
+    self.h1 = tf.nn.relu(tf.matmul(input, self.W1) + self.b1)
     self.h2 = tf.nn.relu(tf.matmul(self.h1, self.W2) + self.b2)
     self.pre_softmax = tf.matmul(self.h2, self.W3) + self.b3
     return self.pre_softmax
 
-
-  def feedfowrard_robust(self, input, label=None, robust=True):
-
+  def __call__(self, input):
     self.x_input = input
-    if label is not None:
-      self.y_input = label
+    return self.feedforward_pass(input)
+
+  @tf.function
+  def train_step(self, input, label, robust=True):
+    self.x_input = input
+    self.y_input = label
 
     with tf.GradientTape() as self.tape:
       with tf.GradientTape(persistent=True) as self.second_tape:
 
-        self.second_tape.watch(self.x_input)
+        if robust:
+          self.second_tape.watch(self.x_input)
 
-        # Fully connected layers.
-        self.h1 = tf.nn.relu(tf.matmul(self.x_input, self.W1) + self.b1)
-        self.h2 = tf.nn.relu(tf.matmul(self.h1, self.W2) + self.b2)
-        self.pre_softmax = tf.matmul(self.h2, self.W3) + self.b3
+        self.feedforward_pass(self.x_input)
 
         if robust:
           # Compute linear approximation for robust cross-entropy.
@@ -71,24 +74,25 @@ class Model(tf.keras.Model):
           indices = tf.map_fn(lambda n: tf.stack([n, tf.cast(self.y_input[n], tf.int32)]), data_range)
 
           self.nom_exponent = []
-          sum_exps = 0
           for i in range(num_classes):
             self.nom_exponent += [self.pre_softmax[:,i] - tf.gather_nd(self.pre_softmax, indices)]
 
       if robust:
+        sum_exps = 0
         for i in range(num_classes):
           grad = self.second_tape.gradient(self.nom_exponent[i], self.x_input)
           exponent = eps * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
-          sum_exps += tf.exp(exponent)
+          sum_exps += tf.math.exp(exponent)
 
         self.loss = tf.reduce_mean(tf.math.log(sum_exps))
 
       else:
-        if robust == False:
-          y_xent = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            labels=tf.cast(self.y_input, tf.int32), logits=self.pre_softmax)
-          self.loss = tf.reduce_mean(y_xent)
-    return self.pre_softmax
+        y_xent = tf.nn.sparse_softmax_cross_entropy_with_logits(
+          labels=tf.cast(self.y_input, tf.int32), logits=self.pre_softmax)
+        self.loss = tf.reduce_mean(y_xent)
+
+    self.optimizer.apply_gradients(zip(self.tape.gradient(self.loss, self.train_variables), self.train_variables))
+    print("Graph Created!")
 
   def evaluate(self, y_input):
     #Evaluation
@@ -100,9 +104,6 @@ class Model(tf.keras.Model):
     correct_prediction = tf.equal(self.y_pred, y_input)
     self.num_correct = tf.reduce_sum(tf.cast(correct_prediction, tf.int64))
     self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-  def grad(self):
-    return zip(self.tape.gradient(self.loss, self.train_variables), self.train_variables)
 
   @staticmethod
   def _weight_variable(shape):

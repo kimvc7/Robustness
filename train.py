@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="5"
+os.environ["CUDA_VISIBLE_DEVICES"]=""
 
 
 from datetime import datetime
@@ -21,10 +21,10 @@ import tensorflow as tf
 #from CNN_model import Model
 from NN_model import Model as Net
 
-#from pgd_attack import LinfPGDAttack
 
 from foolbox import TensorFlowModel, accuracy, Model
-from foolbox.attacks import LinfPGD
+from foolbox.attacks import LinfPGD, FGSM, FGM
+
 
 import numpy as np
 import input_data
@@ -61,28 +61,30 @@ num_checkpoint_steps = config['num_checkpoint_steps']
 data_set = args.data_set
 initial_learning_rate = config['initial_learning_rate']
 eta = config['constant_learning_rate']
-learning_rate = tf.keras.optimizers.schedules.ExponentialDecay(initial_learning_rate, 5, 0.85, staircase=True)
 
-# Setting up the optimizer
-optimizer = tf.keras.optimizers.Adam(learning_rate)
+
 
 
 #Setting up the data and the model
 data = input_data.load_data_set(validation_size=args.val_size, data_set=data_set, seed=seed)
 num_features = data.train.images.shape[1]
-model = Net(num_features)
+model = Net(num_features, initial_learning_rate, batch_size)
+
 
 pre = dict(std=None, mean=None)  # RGB to BGR
 fmodel: Model = TensorFlowModel(model, bounds=(0, 255), preprocessing=pre)
 fmodel = fmodel.transform_bounds((0, 255))
 
 
+
 attack = LinfPGD()
 epsilons = [
     0.0,
     0.1,
-    1.0,
+    2.0,
 ]
+
+
 
 ''' 
 attack = LinfPGDAttack(model, 
@@ -124,7 +126,7 @@ for ii in range(max_num_training_steps):
     x_batch, y_batch = data.train.next_batch(batch_size)
 
     if ii % num_output_steps == 0:
-
+        print('Step {}:    ({})'.format(ii, datetime.now()))
         ''' 
         model.feedfowrard_robust(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64))
         model.evaluate(tf.cast(y_batch, tf.int64))
@@ -150,22 +152,23 @@ for ii in range(max_num_training_steps):
         print('    Testing Robust Xent {:.4}'.format(test_robust_xent))
         '''
 
+
         raw_advs, clipped_advs, success = attack(fmodel, tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64), epsilons=epsilons)
         robust_accuracy = 1 - success.numpy().mean(axis=-1)
         print("robust accuracy for perturbations with")
         for eps, acc in zip(epsilons, robust_accuracy):
             print(f"  Linf norm ≤ {eps:<6}: {acc.item() * 100:4.1f} %")
 
+
         if ii != 0:
             print('    {} examples per second'.format(
                 num_output_steps * batch_size / training_time))
+            training_time = 0.0
 
-    training_time = 0.0
+
     # Actual training step
     start = timer()
-    model.feedfowrard_robust(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64))
-    optimizer.apply_gradients(model.grad())
-
+    model.train_step(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64), robuts=True)
     end = timer()
     training_time += end - start
 
