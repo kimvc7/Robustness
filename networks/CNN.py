@@ -1,0 +1,95 @@
+"""
+The model is adapted from the tensorflow tutorial:
+https://www.tensorflow.org/get_started/mnist/pros
+"""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import tensorflow as tf
+import json
+import numpy as np
+
+import robust_net
+
+
+with open('config.json') as config_file:
+    config = json.load(config_file)
+eps = config['epsilon']
+
+num_classes = 10
+
+
+class robustCNN(robust_net.RobustNet):
+
+  def __init__(self, num_features, initial_learning_rate, training_batch_size):
+    super(robustCNN, self).__init__()
+
+    self.train_variables = []
+
+    # first convolutional layer
+    self.W_conv1 = self._weight_variable([5,5,1,32])
+    self.train_variables += [self.W_conv1]
+    self.b_conv1 = self._bias_variable([32])
+    self.train_variables += [self.b_conv1]
+
+    # second convolutional layer
+    self.W_conv2 = self._weight_variable([5,5,32,64])
+    self.train_variables += [self.W_conv2]
+    self.b_conv2 = self._bias_variable([64])
+    self.train_variables += [self.b_conv2]
+
+    # first fully connected layer
+    self.W_fc1 = self._weight_variable([7 * 7 * 64, 1024])
+    self.train_variables += [self.W_fc1]
+    self.b_fc1 = self._bias_variable([1024])
+    self.train_variables += [self.b_fc1]
+
+    # output layer
+    self.W_fc2 = self._weight_variable([1024,10])
+    self.train_variables += [self.W_fc2]
+    self.b_fc2 = self._bias_variable([10])
+    self.train_variables += [self.b_fc2]
+
+    # Setting up the optimizer
+    self.learning_rate = \
+      tf.keras.optimizers.schedules.ExponentialDecay(initial_learning_rate, training_batch_size * 5, 0.85, staircase=True)
+
+    self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
+
+  def feedforward_pass(self, input):
+      self.x_input = tf.reshape(input, [-1, 28, 28, 1])
+
+      h1 = self._conv2d(self.x_input, self.W_conv1) + self.b_conv1
+      h_conv1 = tf.nn.relu(h1)
+      h_pool1 = self._max_pool_2x2(h_conv1)
+
+      h_conv2 = tf.nn.relu(self._conv2d(h_pool1, self.W_conv2) + self.b_conv2)
+      h_pool2 = self._max_pool_2x2(h_conv2)
+
+      h_pool2_flat = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
+      h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, self.W_fc1) + self.b_fc1)
+
+      self.pre_softmax = tf.matmul(h_fc1, self.W_fc2) + self.b_fc2
+      return self.pre_softmax
+
+  @staticmethod
+  def _weight_variable(shape):
+    initial = tf.keras.initializers.GlorotUniform()
+    return tf.Variable(initial_value=initial(shape), name=str(np.random.randint(1e10)), trainable=True)
+
+  @staticmethod
+  def _bias_variable(shape):
+      initial = tf.constant(0.1, shape=shape)
+      return tf.Variable(initial)
+
+  @staticmethod
+  def _conv2d(x, W):
+      return tf.nn.conv2d(x, W, strides=[1,1,1,1], padding='SAME')
+
+  @staticmethod
+  def _max_pool_2x2( x):
+      return tf.nn.max_pool(x,
+                            ksize = [1,2,2,1],
+                            strides=[1,2,2,1],
+                            padding='SAME')
