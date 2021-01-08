@@ -32,7 +32,7 @@ class RobustNet(tf.keras.Model):
     print("Graph Created!")
 
   @tf.function
-  def evaluate(self, input, label, summary, step):
+  def evaluate(self, input, label, summary=None, step=-1):
     self._full_call(input, label, robust=True, evaluate=True, summary=summary, step=step)
 
   def _full_call(self, input, label, robust=True, evaluate=False, summary=None, step=0):
