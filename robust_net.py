@@ -85,6 +85,6 @@ class RobustNet(tf.keras.Model):
 
       if summary:
         with summary.as_default():
-          tf.summary.scalar('Cross Entropy', self.loss, step)
+          tf.summary.scalar('Cross Entropy', self.xent, step)
           tf.summary.scalar('Accuracy', self.accuracy, step)
-          tf.summary.scalar('Robust Loss', self.xent, step)
+          tf.summary.scalar('Robust Loss', self.loss, step)
