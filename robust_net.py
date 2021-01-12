@@ -32,12 +32,14 @@ class RobustNet(tf.keras.Model):
     print("Graph Created!")
 
   @tf.function
-  def evaluate(self, input, label, summary=None, step=-1):
-    self._full_call(input, label, robust=True, evaluate=True, summary=summary, step=step)
+  def evaluate(self, input, label, robust=True, summary=None, step=-1):
+    self._full_call(input, label, robust=robust, evaluate=True, summary=summary, step=step)
 
   def _full_call(self, input, label, robust=True, evaluate=False, summary=None, step=0):
     self.x_input = input
     self.y_input = label
+    self.M = tf.minimum(1 - self.x_input, eps)
+    self.m = tf.maximum(-self.x_input, -eps)
 
     with tf.GradientTape() as self.tape:
       with tf.GradientTape(persistent=True) as self.second_tape:
@@ -60,7 +62,10 @@ class RobustNet(tf.keras.Model):
         sum_exps = 0
         for i in range(num_classes):
           grad = self.second_tape.gradient(self.nom_exponent[i], self.x_input)
-          exponent = eps * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
+          positive_terms = tf.multiply(self.M, tf.nn.relu(grad[0]))
+          negative_terms = tf.multiply(self.m, tf.nn.relu(-grad[0]))
+          #exponent = eps * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
+          exponent = tf.reduce_sum(positive_terms - negative_terms, axis=1) + self.nom_exponent[i]
           sum_exps += tf.math.exp(exponent)
 
         self.loss = tf.reduce_mean(tf.math.log(sum_exps))
@@ -85,6 +90,6 @@ class RobustNet(tf.keras.Model):
 
       if summary:
         with summary.as_default():
-          tf.summary.scalar('Cross Entropy', self.loss, step)
+          tf.summary.scalar('Cross Entropy', self.xent, step)
           tf.summary.scalar('Accuracy', self.accuracy, step)
-          tf.summary.scalar('Robust Loss', self.xent, step)
+          tf.summary.scalar('Robust Loss', self.loss, step)

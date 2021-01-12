@@ -15,7 +15,7 @@ import tensorflow as tf
 from networks.MLP import robustMLP as Net
 import input_data
 
-eval_attack = False
+eval_attack = True
 if eval_attack:
     from foolbox import TensorFlowModel, accuracy, Model
     from foolbox.attacks import LinfPGD, FGSM, FGM
@@ -59,11 +59,7 @@ if eval_attack:
     fmodel: Model = TensorFlowModel(model, bounds=(0, 255), preprocessing=pre)
     fmodel = fmodel.transform_bounds((0, 255))
     attack = LinfPGD()
-    epsilons = [
-        0.0,
-        0.1,
-        2.0,
-    ]
+    epsilons = [0.1]
 
 
 #Setting up data for testing and validation
@@ -98,8 +94,9 @@ for ii in range(max_num_training_steps):
         if eval_attack:
             raw_advs, clipped_advs, success = attack(fmodel, tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
                                                  epsilons=epsilons)
-            model.evaluate(tf.cast(clipped_advs[1], tf.float32), tf.cast(y_batch, tf.int64),
-                             summary=summary_writer2, step=ii)
+            model.evaluate(tf.cast(clipped_advs[0], tf.float32), tf.cast(y_batch, tf.int64),
+                             robust=False, summary=summary_writer2, step=ii)
+
             robust_accuracy = 1 - success.numpy().mean(axis=-1)
             print("robust accuracy for perturbations with")
             for eps, acc in zip(epsilons, robust_accuracy):
