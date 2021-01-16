@@ -6,6 +6,7 @@ from timeit import default_timer as timer
 from networks.robust_network import get_network
 from datetime import datetime
 import sys
+import pickle
 
 
 def train(config):
@@ -23,7 +24,7 @@ def train(config):
 
     if eval_attack_during_training:
         from foolbox import TensorFlowModel, accuracy, Model
-        from foolbox.attacks import LinfPGD, FGSM, FGM
+        from foolbox.attacks import LinfPGD
 
     # Setting up the data and the model
     data = input_data.load_data_set(validation_size=config['validation_size'], data_set=data_set, seed=seed)
@@ -63,6 +64,7 @@ def train(config):
 
     # Main training loop
     training_time = 0.0
+    training_time_history = []
     for ii in range(start_iteration, max_num_training_steps):
         x_batch, y_batch = data.train.next_batch(batch_size)
 
@@ -92,19 +94,21 @@ def train(config):
             if training_time != 0:
                 print('    {} examples per second'.format(
                     num_output_steps * batch_size / training_time))
-
+                training_time_history.append(num_output_steps * batch_size / training_time)
                 training_time = 0.0
 
                 model.save_all(model_dir + '/checkpoints/' + str(ii))
 
             sys.stdout.flush()
 
-        # Actual training step
+        # Training step
         start = timer()
         model.train_step(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64), robust=robust_training)
         end = timer()
         training_time += end - start
 
+    # Flag the training completed and store the training time profile
     open(model_dir + '/results/training.done', 'w').close()
-
+    with open(model_dir + '/results/training_time.pkl', 'wb') as f:
+        pickle.dump(training_time_history, f)
 

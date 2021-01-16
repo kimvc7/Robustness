@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --array=0-5,7-60
+#SBATCH --array=0-69
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --job-name=robustness

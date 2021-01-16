@@ -1,6 +1,4 @@
-
-
-#Hub for all the networks available
+# Hub for all the networks available
 def get_network(name_net, config, num_features):
 
     if name_net == 'MLP':
