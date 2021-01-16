@@ -47,7 +47,11 @@ def train(config):
     elif config["restart"]:
         print("Restart training")
         import shutil
-        shutil.rmtree(model_dir)
+        shutil.rmtree(model_dir + '/checkpoints/', ignore_errors=True )
+        shutil.rmtree(model_dir + '/results/', ignore_errors=True )
+        shutil.rmtree(model_dir + '/Test/', ignore_errors=True )
+        shutil.rmtree(model_dir + '/Natural/', ignore_errors=True )
+        shutil.rmtree(model_dir + '/Adversarial/', ignore_errors=True )
         os.makedirs(model_dir)
         start_iteration = 0
     else:
@@ -75,16 +79,16 @@ def train(config):
             x_test, y_test = data.validation.next_batch(batch_size)
 
             model.evaluate(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
-                            summary=summary_writer1, step=ii, robust=robust_training)
+                            summary=summary_writer1, step=ii)
             model.evaluate(tf.cast(x_test, tf.float32), tf.cast(y_test, tf.int64),
-                            summary=summary_writer, step=ii, robust=robust_training)
+                            summary=summary_writer, step=ii)
 
             if eval_attack_during_training:
                 raw_advs, clipped_advs, success = attack(fmodel, tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
                             epsilons=epsilons)
 
                 model.evaluate(tf.cast(clipped_advs[0], tf.float32), tf.cast(y_batch, tf.int64),
-                            summary=summary_writer2, step=ii, robust=robust_training)
+                            summary=summary_writer2, step=ii)
 
                 robust_accuracy = 1 - success.numpy().mean(axis=-1)
                 print("robust accuracy for perturbations with")

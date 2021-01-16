@@ -26,8 +26,8 @@ class RobustifyNetwork(tf.keras.Model):
     self._full_call(input, label, robust=robust, evaluate=False, summary=None, step=0)
 
   @tf.function
-  def evaluate(self, input, label, robust=True, summary=None, step=-1):
-    self._full_call(input, label, robust=robust, evaluate=True, summary=summary, step=step)
+  def evaluate(self, input, label, summary=None, step=-1):
+    self._full_call(input, label, robust=True, evaluate=True, summary=summary, step=step)
 
   def _full_call(self, input, label, robust=True, evaluate=False, summary=None, step=0):
     self.x_input = input

@@ -34,7 +34,7 @@ def test(config):
     fmodel: Model = TensorFlowModel(model, bounds=(0, 255), preprocessing=pre)
     fmodel = fmodel.transform_bounds((0, 255))
 
-    epsilons_l2 = [
+    epsilons_inf = [
             0.0,
             0.0002,
             0.0005,
@@ -49,7 +49,7 @@ def test(config):
             0.5,
             1.0,
         ]
-    epsilons_inf = list(10*np.array(epsilons_l2))
+    epsilons_l2 = list(10*np.array(epsilons_inf))
 
     attacks = [LinfPGD(), FGM()]
     name_attacks = ["linfpgd", "l2fgsm"]
