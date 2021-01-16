@@ -41,7 +41,7 @@ else:
     if args.config == 'generate':
         import runs.config_experiments as run
         run.config_experiments(results_dir)
-    elif args.config == 'check_train':
+    elif args.config == 'check':
         import runs.config_experiments as run
         experiment_list = run.config_experiments(results_dir, create_json=False)
-        run.check_uncompleted_train(results_dir, experiment_list)
+        run.check_uncompleted(results_dir, experiment_list)

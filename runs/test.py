@@ -93,7 +93,8 @@ def test(config):
         print("\n Attack " + name_attack + " done")
         sys.stdout.flush()
 
-    print(":)")
+    open(config['model_dir'] + '/results/testing.done', 'w').close()
+
 
 
 

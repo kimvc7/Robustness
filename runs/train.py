@@ -47,12 +47,13 @@ def train(config):
     elif config["restart"]:
         print("Restart training")
         import shutil
-        shutil.rmtree(model_dir + '/checkpoints/', ignore_errors=True )
-        shutil.rmtree(model_dir + '/results/', ignore_errors=True )
-        shutil.rmtree(model_dir + '/Test/', ignore_errors=True )
-        shutil.rmtree(model_dir + '/Natural/', ignore_errors=True )
-        shutil.rmtree(model_dir + '/Adversarial/', ignore_errors=True )
-        os.makedirs(model_dir)
+        shutil.rmtree(model_dir + '/checkpoints', ignore_errors=True)
+        shutil.rmtree(model_dir + '/results', ignore_errors=True)
+        shutil.rmtree(model_dir + '/Test', ignore_errors=True)
+        shutil.rmtree(model_dir + '/Natural', ignore_errors=True)
+        shutil.rmtree(model_dir + '/Adversarial', ignore_errors=True)
+        os.makedirs(model_dir + '/checkpoints/')
+        os.makedirs(model_dir + '/results/')
         start_iteration = 0
     else:
         start_iteration = int(tf.train.latest_checkpoint(model_dir + '/checkpoints/').split('/')[-1])
