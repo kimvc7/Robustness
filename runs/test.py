@@ -9,8 +9,8 @@ import sys
 import input_data
 from networks.robust_network import get_network
 
-from foolbox import TensorFlowModel, accuracy, Model
-from foolbox.attacks import LinfPGD, FGSM, FGM
+from foolbox import TensorFlowModel, Model
+from foolbox.attacks import LinfPGD, FGSM, FGM, L2PGD
 
 
 def test(config):
@@ -51,9 +51,9 @@ def test(config):
         ]
     epsilons_l2 = list(10*np.array(epsilons_inf))
 
-    attacks = [LinfPGD(), FGM()]
-    name_attacks = ["linfpgd", "l2fgsm"]
-    epsilons = [epsilons_inf, epsilons_l2]
+    attacks = [LinfPGD(), L2PGD(), FGSM(), FGM()]
+    name_attacks = ["linf_pgd", "l2_pgd", "linf_fgsm", "l2_fgm"]
+    epsilons = [epsilons_inf, epsilons_l2, epsilons_inf, epsilons_l2]
 
     num_iter = 10
     for attack, name_attack, epsilon in zip(attacks, name_attacks, epsilons):
@@ -92,5 +92,8 @@ def test(config):
 
         print("\n Attack " + name_attack + " done")
         sys.stdout.flush()
+
+    print(":)")
+
 
 
