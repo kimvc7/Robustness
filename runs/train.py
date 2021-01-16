@@ -13,12 +13,13 @@ def train(config):
     # Setting up training parameters
     seed = config['random_seed']
     tf.random.set_seed(seed)
-    batch_size = config['batch_size']
+    batch_size = config['training_batch_size']
     max_num_training_steps = config['max_num_training_steps']
     num_output_steps = config['num_output_steps']
     data_set = config['data_set']
     eval_attack_during_training = config['eval_attack_during_training']
     backbone_name = config['backbone']
+    robust_training = config['robust_training']
 
     if eval_attack_during_training:
         from foolbox import TensorFlowModel, accuracy, Model
@@ -37,13 +38,10 @@ def train(config):
         attack = LinfPGD()
         epsilons = [0.1]
 
-    # Setting up data for testing and validation
-    x_test = data.validation.images
-    y_test = data.validation.labels.reshape(-1)
-
     model_dir = config['model_dir']
     if not os.path.exists(model_dir + '/checkpoints/'):
-        os.makedirs(model_dir + '/checkpoints/' )
+        os.makedirs(model_dir + '/checkpoints/')
+        os.makedirs(model_dir + '/results/')
         start_iteration = 0
     elif config["restart"]:
         print("Restart training")
@@ -71,23 +69,25 @@ def train(config):
         if ii % num_output_steps == 0:
             print('\n Step {} {}:    ({})\n'.format(model.optimizer.iterations.numpy(), ii, datetime.now()))
 
+            # Setting up data for testing and validation
+            x_test, y_test = data.validation.next_batch(batch_size)
+
             model.evaluate(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
-                            summary=summary_writer1, step=ii)
+                            summary=summary_writer1, step=ii, robust=robust_training)
             model.evaluate(tf.cast(x_test, tf.float32), tf.cast(y_test, tf.int64),
-                            summary=summary_writer, step=ii)
+                            summary=summary_writer, step=ii, robust=robust_training)
 
             if eval_attack_during_training:
                 raw_advs, clipped_advs, success = attack(fmodel, tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
                             epsilons=epsilons)
 
                 model.evaluate(tf.cast(clipped_advs[0], tf.float32), tf.cast(y_batch, tf.int64),
-                            robust=False, summary=summary_writer2, step=ii)
+                            summary=summary_writer2, step=ii, robust=robust_training)
 
                 robust_accuracy = 1 - success.numpy().mean(axis=-1)
                 print("robust accuracy for perturbations with")
                 for eps, acc in zip(epsilons, robust_accuracy):
                     print(f"  Linf norm < {eps:<6}: {acc.item() * 100:4.1f} %")
-
 
             if training_time != 0:
                 print('    {} examples per second'.format(
@@ -101,7 +101,7 @@ def train(config):
 
         # Actual training step
         start = timer()
-        model.train_step(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64), robust=True)
+        model.train_step(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64), robust=robust_training)
         end = timer()
         training_time += end - start
 

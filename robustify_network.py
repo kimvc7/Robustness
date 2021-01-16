@@ -24,7 +24,6 @@ class RobustifyNetwork(tf.keras.Model):
   @tf.function
   def train_step(self, input, label, robust=True):
     self._full_call(input, label, robust=robust, evaluate=False, summary=None, step=0)
-    print("Graph Created!")
 
   @tf.function
   def evaluate(self, input, label, robust=True, summary=None, step=-1):
@@ -33,8 +32,8 @@ class RobustifyNetwork(tf.keras.Model):
   def _full_call(self, input, label, robust=True, evaluate=False, summary=None, step=0):
     self.x_input = input
     self.y_input = label
-    self.M = tf.minimum(1 - self.x_input, self.eps)
-    self.m = tf.maximum(-self.x_input, -self.eps)
+    #self.M = tf.minimum(1 - self.x_input, self.eps)
+    #self.m = tf.maximum(-self.x_input, -self.eps)
 
     with tf.GradientTape() as self.tape:
       with tf.GradientTape(persistent=True) as self.second_tape:
@@ -57,10 +56,10 @@ class RobustifyNetwork(tf.keras.Model):
         sum_exps = 0
         for i in range(self.num_classes):
           grad = self.second_tape.gradient(self.nom_exponent[i], self.x_input)
-          positive_terms = tf.multiply(self.M, tf.nn.relu(grad[0]))
-          negative_terms = tf.multiply(self.m, tf.nn.relu(-grad[0]))
-          #exponent = eps * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
-          exponent = tf.reduce_sum(positive_terms - negative_terms, axis=1) + self.nom_exponent[i]
+          #positive_terms = tf.multiply(self.M, tf.nn.relu(grad[0]))
+          #negative_terms = tf.multiply(self.m, tf.nn.relu(-grad[0]))
+          # exponent = tf.reduce_sum(positive_terms - negative_terms, axis=1) + self.nom_exponent[i]
+          exponent = self.eps * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
           sum_exps += tf.math.exp(exponent)
 
         self.loss = tf.reduce_mean(tf.math.log(sum_exps))
@@ -72,6 +71,8 @@ class RobustifyNetwork(tf.keras.Model):
 
     if not evaluate:
       self.optimizer.apply_gradients(zip(self.tape.gradient(self.loss, self.train_variables), self.train_variables))
+      #print("\n Graph Created! \n")
+
     else:
       # Evaluation
       y_xent = tf.nn.sparse_softmax_cross_entropy_with_logits(
@@ -89,6 +90,8 @@ class RobustifyNetwork(tf.keras.Model):
           tf.summary.scalar('Accuracy', self.accuracy, step)
           tf.summary.scalar('Robust Loss', self.loss, step)
           tf.summary.scalar('Learning Rate', self.optimizer.learning_rate(step), step)
+
+      #print("\n Evaluate Graph Created! \n")
 
   def load_all(self, path):
     opt_weights = np.load(path + '_optimizer.npy', allow_pickle=True)

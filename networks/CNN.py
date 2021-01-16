@@ -10,11 +10,11 @@ import tensorflow as tf
 import numpy as np
 import robustify_network
 
+
 class robustCNN(robustify_network.RobustifyNetwork):
 
   def __init__(self, config):
     super().__init__(config['num_classes'], config['epsilon'])
-
 
     initial_learning_rate = config['initial_learning_rate']
     training_batch_size = config['training_batch_size']
