@@ -1,13 +1,14 @@
 import json
+import os
 
 
-def config_experiments(results_dir):
+def config_experiments(results_dir, create_json=True):
 
     with open('./base_config.json') as config_file:
         base_config = json.load(config_file)
 
     id = 0
-
+    experiment_list = []
     # Models with robustness
     for net in ["MLP", "CNN"]:
         for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
@@ -18,8 +19,10 @@ def config_experiments(results_dir):
                 config["initial_learning_rate"] = lr
                 config["epsilon"] = epsilon
                 config["robust_training"] = True
-                with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
-                    json.dump(config, json_file)
+                if create_json:
+                    with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
+                        json.dump(config, json_file)
+                experiment_list.append(config.copy())
                 id += 1
 
     # Models without robustness
@@ -31,8 +34,20 @@ def config_experiments(results_dir):
                 config["initial_learning_rate"] = lr
                 config["epsilon"] = epsilon
                 config["robust_training"] = False
-                with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
-                    json.dump(config, json_file)
+                if create_json:
+                    with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
+                        json.dump(config, json_file)
+                experiment_list.append(config.copy())
                 id += 1
 
     print(str(id) + " config files created")
+    return experiment_list
+
+
+def check_uncompleted_train(results_dir, experiments_list):
+
+    for experiment in experiments_list:
+        if not os.path.isfile(results_dir + experiment["model_name"] + '/results/training.done'):
+            print(experiment["model_name"], end = ',')
+
+    print("\n Check completed")

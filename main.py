@@ -11,6 +11,8 @@ parser.add_argument("--filesystem", type=str, default="local",
                             help="filesystem")
 parser.add_argument("--gpu_id", type=str, default="",
                             help="gpu IDs")
+parser.add_argument("--config", type=str, default="",
+                            help="config instruction")
 args = parser.parse_args()
 print(args)
 
@@ -36,5 +38,10 @@ if not args.run == 'config':
         run.test(config)
 
 else:
-    import runs.config_experiments as run
-    run.config_experiments(results_dir)
+    if args.config == 'generate':
+        import runs.config_experiments as run
+        run.config_experiments(results_dir)
+    elif args.config == 'check_train':
+        import runs.config_experiments as run
+        experiment_list = run.config_experiments(results_dir, create_json=False)
+        run.check_uncompleted_train(results_dir, experiment_list)
