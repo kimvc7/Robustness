@@ -2,26 +2,20 @@
 The model is a multiclass perceptron for 10 classes.
 """
 import tensorflow as tf
-
-
 import numpy as np
-import json
-
-import robust_net
-
-with open('config.json') as config_file:
-    config = json.load(config_file)
-eps = config['epsilon']
-
-l1_size = 200
-l2_size = 200
-num_classes = 10
+import robustify_network
 
 
-class robustMLP(robust_net.RobustNet):
+class robustMLP(robustify_network.RobustifyNetwork):
 
-  def __init__(self, num_features, initial_learning_rate, training_batch_size):
-    super(robustMLP, self).__init__()
+  def __init__(self, config, num_features):
+    super().__init__(config['num_classes'], config['epsilon'])
+
+    l1_size = config['l1_size']
+    l2_size = config['l2_size']
+    initial_learning_rate = config['initial_learning_rate']
+    training_batch_size = config['batch_size']
+    num_classes = config['num_classes']
 
     self.train_variables = []
 

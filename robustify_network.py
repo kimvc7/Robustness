@@ -2,20 +2,15 @@
 The abstract robust model
 """
 import tensorflow as tf
-import json
+import numpy as np
 
+class RobustifyNetwork(tf.keras.Model):
 
-with open('config.json') as config_file:
-    config = json.load(config_file)
-eps = config['epsilon']
-num_classes = 10
+  def __init__(self, num_classes, epsilon):
+    super(RobustifyNetwork, self).__init__()
 
-
-class RobustNet(tf.keras.Model):
-
-  def __init__(self):
-    super(RobustNet, self).__init__()
-
+    self.num_classes = num_classes
+    self.eps = epsilon
     self.train_variables = []
     pass
 
@@ -38,8 +33,8 @@ class RobustNet(tf.keras.Model):
   def _full_call(self, input, label, robust=True, evaluate=False, summary=None, step=0):
     self.x_input = input
     self.y_input = label
-    self.M = tf.minimum(1 - self.x_input, eps)
-    self.m = tf.maximum(-self.x_input, -eps)
+    self.M = tf.minimum(1 - self.x_input, self.eps)
+    self.m = tf.maximum(-self.x_input, -self.eps)
 
     with tf.GradientTape() as self.tape:
       with tf.GradientTape(persistent=True) as self.second_tape:
@@ -55,12 +50,12 @@ class RobustNet(tf.keras.Model):
           indices = tf.map_fn(lambda n: tf.stack([n, tf.cast(self.y_input[n], tf.int32)]), data_range)
 
           self.nom_exponent = []
-          for i in range(num_classes):
+          for i in range(self.num_classes):
             self.nom_exponent += [self.pre_softmax[:,i] - tf.gather_nd(self.pre_softmax, indices)]
 
       if robust:
         sum_exps = 0
-        for i in range(num_classes):
+        for i in range(self.num_classes):
           grad = self.second_tape.gradient(self.nom_exponent[i], self.x_input)
           positive_terms = tf.multiply(self.M, tf.nn.relu(grad[0]))
           negative_terms = tf.multiply(self.m, tf.nn.relu(-grad[0]))
@@ -93,3 +88,17 @@ class RobustNet(tf.keras.Model):
           tf.summary.scalar('Cross Entropy', self.xent, step)
           tf.summary.scalar('Accuracy', self.accuracy, step)
           tf.summary.scalar('Robust Loss', self.loss, step)
+          tf.summary.scalar('Learning Rate', self.optimizer.learning_rate(step), step)
+
+  def load_all(self, path):
+    opt_weights = np.load(path + '_optimizer.npy', allow_pickle=True)
+
+    grad_vars = self.trainable_weights
+    zero_grads = [tf.zeros_like(w) for w in grad_vars]
+    self.optimizer.apply_gradients(zip(zero_grads, grad_vars))
+    self.optimizer.set_weights(opt_weights)
+    self.load_weights(path)
+
+  def save_all(self, path):
+    self.save_weights(path)
+    np.save(path + '_optimizer.npy', self.optimizer.get_weights())

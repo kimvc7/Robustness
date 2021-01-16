@@ -7,23 +7,17 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
-import json
 import numpy as np
+import robustify_network
 
-import robust_net
+class robustCNN(robustify_network.RobustifyNetwork):
 
-
-with open('config.json') as config_file:
-    config = json.load(config_file)
-eps = config['epsilon']
-
-num_classes = 10
+  def __init__(self, config):
+    super().__init__(config['num_classes'], config['epsilon'])
 
 
-class robustCNN(robust_net.RobustNet):
-
-  def __init__(self, num_features, initial_learning_rate, training_batch_size):
-    super(robustCNN, self).__init__()
+    initial_learning_rate = config['initial_learning_rate']
+    training_batch_size = config['training_batch_size']
 
     self.train_variables = []
 

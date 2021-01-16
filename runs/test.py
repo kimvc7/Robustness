@@ -8,10 +8,10 @@ import json
 import argparse
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]=""
+os.environ["CUDA_VISIBLE_DEVICES"]="6"
 import tensorflow as tf
 
-from networks.MLP import robustMLP as Net
+from networks.CNN import robustCNN as Net
 import input_data
 
 from foolbox import TensorFlowModel, accuracy, Model
@@ -95,14 +95,15 @@ y_test = data.validation.labels.reshape(-1)
 
 x_batch, y_batch = data.train.next_batch(batch_size)
 
-model.load_weights('./results/checkpoints/6000')
+model.load_weights(tf.train.latest_checkpoint('./results/checkpoints/', latest_filename=None))
+
 
 raw_advs, clipped_advs, success = attack_linfpgd(fmodel, tf.cast(x_test, tf.float32), tf.cast(y_test, tf.int64),
                                          epsilons=epsilons_inf)
 robust_accuracy = 1 - success.numpy().mean(axis=-1)
 print("robust accuracy for perturbations with")
 for eps, acc in zip(epsilons_inf, robust_accuracy):
-    print(f"  Linf norm ≤ {eps:<6}: {acc.item() * 100:4.1f} %")
+    print(f"  Linf norm < {eps:<6}: {acc.item() * 100:4.1f} %")
 
 
 raw_advs, clipped_advs, success = attack_l2fgsm(fmodel, tf.cast(x_test, tf.float32), tf.cast(y_test, tf.int64),
@@ -110,7 +111,7 @@ raw_advs, clipped_advs, success = attack_l2fgsm(fmodel, tf.cast(x_test, tf.float
 robust_accuracy = 1 - success.numpy().mean(axis=-1)
 print("robust accuracy for perturbations with")
 for eps, acc in zip(epsilons_inf, robust_accuracy):
-    print(f"  L2 norm ≤ {eps:<6}: {acc.item() * 100:4.1f} %")
+    print(f"  L2 norm < {eps:<6}: {acc.item() * 100:4.1f} %")
 
 
 
