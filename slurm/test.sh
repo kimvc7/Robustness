@@ -4,10 +4,10 @@
 #SBATCH -c 2
 #SBATCH --job-name=robustness
 #SBATCH --exclude=node003,node004
-#SBATCH --mem=3GB
+#SBATCH --mem=5GB
 #SBATCH -t 0:20:00
 #SBATCH -D ./log/
-#SBATCH --partition=normal
+#SBATCH --partition=cbmm
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=any-gpu
 

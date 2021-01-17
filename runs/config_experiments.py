@@ -60,8 +60,7 @@ def config_experiments(results_dir, create_json=True):
 
     config = base_config.copy()
     config["model_name"] = str(id)
-    config["Madry"] = True
-    config["backbone"] = "CNN"
+    config["backbone"] = "Madry"
     config["robust_training"] = True
     if create_json:
         with open(results_dir + 'configs/' + str(id) + '.json', 'w') as json_file:
