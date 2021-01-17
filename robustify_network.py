@@ -93,14 +93,17 @@ class RobustifyNetwork(tf.keras.Model):
 
       #print("\n Evaluate Graph Created! \n")
 
-  def load_all(self, path):
-    opt_weights = np.load(path + '_optimizer.npy', allow_pickle=True)
+  def load_all(self, path, load_optimizer=True):
 
-    grad_vars = self.trainable_weights
-    zero_grads = [tf.zeros_like(w) for w in grad_vars]
-    self.optimizer.apply_gradients(zip(zero_grads, grad_vars))
-    self.optimizer.set_weights(opt_weights)
-    self.load_weights(path)
+    if load_optimizer:
+      opt_weights = np.load(path + '_optimizer.npy', allow_pickle=True)
+
+      grad_vars = self.trainable_weights
+      zero_grads = [tf.zeros_like(w) for w in grad_vars]
+      self.optimizer.apply_gradients(zip(zero_grads, grad_vars))
+      self.optimizer.set_weights(opt_weights)
+
+    self.load_weights(path, by_name=True)
 
   def save_all(self, path):
     self.save_weights(path)

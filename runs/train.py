@@ -7,9 +7,15 @@ from networks.robust_network import get_network
 from datetime import datetime
 import sys
 import pickle
+import zipfile
+import hashlib
 
 
 def train(config):
+
+    if "Madry" in config:
+        print("Download the model manually")
+        return
 
     # Setting up training parameters
     seed = config['random_seed']

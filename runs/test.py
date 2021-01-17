@@ -12,7 +12,6 @@ from networks.robust_network import get_network
 from foolbox import TensorFlowModel, Model
 from foolbox.attacks import LinfPGD, FGSM, FGM, L2PGD
 
-
 def test(config):
 
     # Setting up testing parameters
@@ -27,7 +26,10 @@ def test(config):
     num_features = data.train.images.shape[1]
     model = get_network(backbone_name, config, num_features)
 
-    model.load_all(tf.train.latest_checkpoint(config['model_dir'] + '/checkpoints/'))
+    if 'Madry' in config:
+        model.load_Madry(config['model_dir'])
+    else:
+        model.load_all(tf.train.latest_checkpoint(config['model_dir'] + '/checkpoints/'), load_optimizer=False)
 
     #Setting up attacks
     pre = dict(std=None, mean=None)  # RGB to BGR

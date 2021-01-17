@@ -22,27 +22,27 @@ class robustCNN(robustify_network.RobustifyNetwork):
     self.train_variables = []
 
     # first convolutional layer
-    self.W_conv1 = self._weight_variable([5,5,1,32])
+    self.W_conv1 = self._weight_variable([5,5,1,32], name="Variable")
     self.train_variables += [self.W_conv1]
-    self.b_conv1 = self._bias_variable([32])
+    self.b_conv1 = self._bias_variable([32], name="Variable_1")
     self.train_variables += [self.b_conv1]
 
     # second convolutional layer
-    self.W_conv2 = self._weight_variable([5,5,32,64])
+    self.W_conv2 = self._weight_variable([5,5,32,64], name="Variable_2")
     self.train_variables += [self.W_conv2]
-    self.b_conv2 = self._bias_variable([64])
+    self.b_conv2 = self._bias_variable([64], name="Variable_3")
     self.train_variables += [self.b_conv2]
 
     # first fully connected layer
-    self.W_fc1 = self._weight_variable([7 * 7 * 64, 1024])
+    self.W_fc1 = self._weight_variable([7 * 7 * 64, 1024], name="Variable_4")
     self.train_variables += [self.W_fc1]
-    self.b_fc1 = self._bias_variable([1024])
+    self.b_fc1 = self._bias_variable([1024], name="Variable_5")
     self.train_variables += [self.b_fc1]
 
     # output layer
-    self.W_fc2 = self._weight_variable([1024,10])
+    self.W_fc2 = self._weight_variable([1024,10], name="Variable_6")
     self.train_variables += [self.W_fc2]
-    self.b_fc2 = self._bias_variable([10])
+    self.b_fc2 = self._bias_variable([10], name="Variable_7")
     self.train_variables += [self.b_fc2]
 
     # Setting up the optimizer
@@ -68,13 +68,13 @@ class robustCNN(robustify_network.RobustifyNetwork):
       return self.pre_softmax
 
   @staticmethod
-  def _weight_variable(shape):
+  def _weight_variable(shape, name):
     initial = tf.keras.initializers.GlorotUniform()
-    return tf.Variable(initial_value=initial(shape), name=str(np.random.randint(1e10)), trainable=True)
+    return tf.Variable(initial_value=initial(shape), name=name, trainable=True)
 
   @staticmethod
-  def _bias_variable(shape):
-      initial = tf.constant(0.1, shape=shape)
+  def _bias_variable(shape, name):
+      initial = tf.constant(0.1, shape=shape, name=name)
       return tf.Variable(initial)
 
   @staticmethod
@@ -87,3 +87,18 @@ class robustCNN(robustify_network.RobustifyNetwork):
                             ksize = [1,2,2,1],
                             strides=[1,2,2,1],
                             padding='SAME')
+
+  def load_Madry(self, model_dir):
+      from tensorflow.python.training import py_checkpoint_reader
+      reader = py_checkpoint_reader.NewCheckpointReader(
+          tf.train.latest_checkpoint(model_dir + '/checkpoints/'))
+
+      self.W_conv1.assign(reader.get_tensor("Variable"))
+      self.b_conv1.assign(reader.get_tensor("Variable_1"))
+      self.W_conv2.assign(reader.get_tensor("Variable_2"))
+      self.b_conv2.assign(reader.get_tensor("Variable_3"))
+      self.W_fc1.assign(reader.get_tensor("Variable_4"))
+      self.b_fc1.assign(reader.get_tensor("Variable_5"))
+      self.W_fc2.assign(reader.get_tensor("Variable_6"))
+      self.b_fc2.assign(reader.get_tensor("Variable_7"))
+

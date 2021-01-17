@@ -51,13 +51,23 @@ def config_experiments(results_dir, create_json=True):
                 config["initial_learning_rate"] = lr
                 config["epsilon"] = epsilon
                 config["robust_training"] = True
-                config["restart"] = True
 
                 if create_json:
                     with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
                         json.dump(config, json_file)
                 experiment_list.append(config.copy())
                 id += 1
+
+    config = base_config.copy()
+    config["model_name"] = str(id)
+    config["Madry"] = True
+    config["backbone"] = "CNN"
+    config["robust_training"] = True
+    if create_json:
+        with open(results_dir + 'configs/' + str(id) + '.json', 'w') as json_file:
+            json.dump(config, json_file)
+    experiment_list.append(config.copy())
+    id += 1
 
     print(str(id) + " config files created")
     return experiment_list
