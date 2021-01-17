@@ -103,7 +103,7 @@ class RobustifyNetwork(tf.keras.Model):
       self.optimizer.apply_gradients(zip(zero_grads, grad_vars))
       self.optimizer.set_weights(opt_weights)
 
-    self.load_weights(path, by_name=True)
+    self.load_weights(path)
 
   def save_all(self, path):
     self.save_weights(path)

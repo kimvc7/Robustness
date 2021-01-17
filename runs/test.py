@@ -26,7 +26,7 @@ def test(config):
     num_features = data.train.images.shape[1]
     model = get_network(backbone_name, config, num_features)
 
-    if config['name_net'] == 'Madry': # Load pretrained model for fair comparison
+    if config['backbone'] == 'Madry': # Load pretrained model for fair comparison
         model.load_Madry(config['model_dir'])
     else:
         model.load_all(tf.train.latest_checkpoint(config['model_dir'] + '/checkpoints/'), load_optimizer=False)
