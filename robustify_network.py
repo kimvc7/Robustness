@@ -10,7 +10,6 @@ class RobustifyNetwork(tf.keras.Model):
     super(RobustifyNetwork, self).__init__()
 
     self.num_classes = num_classes
-    self.eps = epsilon
     self.train_variables = []
     pass
 
@@ -22,14 +21,15 @@ class RobustifyNetwork(tf.keras.Model):
     return self.feedforward_pass(input)
 
   @tf.function
-  def train_step(self, input, label, robust=True):
-    self._full_call(input, label, robust=robust, evaluate=False, summary=None, step=0)
+  def train_step(self, input, label, epsilon, robust=True):
+    self._full_call(input, label, epsilon, robust=robust, evaluate=False)
 
   @tf.function
-  def evaluate(self, input, label, summary=None, step=-1):
-    self._full_call(input, label, robust=True, evaluate=True, summary=summary, step=step)
+  def evaluate(self, input, label, epsilon, step=-1, summary=None):
+    self._full_call(input, label, epsilon, step=step, robust=True, evaluate=True, summary=summary)
 
-  def _full_call(self, input, label, robust=True, evaluate=False, summary=None, step=0):
+  def _full_call(self, input, label, epsilon, robust=True, evaluate=False, summary=None, step=-1):
+
     self.x_input = input
     self.y_input = label
     #self.M = tf.minimum(1 - self.x_input, self.eps)
@@ -59,7 +59,7 @@ class RobustifyNetwork(tf.keras.Model):
           #positive_terms = tf.multiply(self.M, tf.nn.relu(grad[0]))
           #negative_terms = tf.multiply(self.m, tf.nn.relu(-grad[0]))
           # exponent = tf.reduce_sum(positive_terms - negative_terms, axis=1) + self.nom_exponent[i]
-          exponent = self.eps * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
+          exponent = epsilon * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
           sum_exps += tf.math.exp(exponent)
 
         self.loss = tf.reduce_mean(tf.math.log(sum_exps))
@@ -90,6 +90,7 @@ class RobustifyNetwork(tf.keras.Model):
           tf.summary.scalar('Accuracy', self.accuracy, step)
           tf.summary.scalar('Robust Loss', self.loss, step)
           tf.summary.scalar('Learning Rate', self.optimizer.learning_rate(step), step)
+          tf.summary.scalar('Epsilon', epsilon, step)
 
       #print("\n Evaluate Graph Created! \n")
 

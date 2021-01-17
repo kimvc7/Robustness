@@ -21,8 +21,11 @@
   "testing_size": 10000,
   "training_batch_size": 256,
   "initial_learning_rate": 1e-3,
+  "batch_decrease_learning_rate": 5,
 
   "_comment": "=====ADVERSARIAL EXAMPLES CONFIGURATION=====",
   "eval_attack_during_training": true,
-  "epsilon": 0.1
+  "epsilon": 0.1,
+  "increasing_epsilon": false
+
 }

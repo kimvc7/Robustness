@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --array=70-94
+#SBATCH --array=165,166,167,177,178,179
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --job-name=robustness
@@ -7,7 +7,7 @@
 #SBATCH --mem=5GB
 #SBATCH -t 2:00:00
 #SBATCH -D ./log/
-#SBATCH --partition=normal
+#SBATCH --partition=cbmm
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=any-gpu
 

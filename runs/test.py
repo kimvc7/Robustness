@@ -5,12 +5,14 @@ import numpy as np
 import pickle
 import tensorflow as tf
 import sys
+import os
 
 import input_data
 from networks.robust_network import get_network
 
 from foolbox import TensorFlowModel, Model
 from foolbox.attacks import LinfPGD, FGSM, FGM, L2PGD
+
 
 def test(config):
 
@@ -20,6 +22,10 @@ def test(config):
     batch_size = config['training_batch_size']
     data_set = config['data_set']
     backbone_name = config['backbone']
+
+    if not os.path.isfile(config["model_dir"] + '/results/training.done'):
+        print("Not trained")
+        return
 
     # Setting up the data and the model
     data = input_data.load_data_set(validation_size=config['validation_size'], data_set=data_set, seed=seed)
