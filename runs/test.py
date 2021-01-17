@@ -27,6 +27,10 @@ def test(config):
         print("Not trained")
         return
 
+    if os.path.isfile(config["model_dir"] + '/results/testing.done'):
+        print("Already tested")
+        return
+
     # Setting up the data and the model
     data = input_data.load_data_set(validation_size=config['validation_size'], data_set=data_set, seed=seed)
     num_features = data.train.images.shape[1]

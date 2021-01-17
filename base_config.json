@@ -26,6 +26,9 @@
   "_comment": "=====ADVERSARIAL EXAMPLES CONFIGURATION=====",
   "eval_attack_during_training": true,
   "epsilon": 0.1,
-  "increasing_epsilon": false
+  "increasing_epsilon": false,
+
+  "pgd_training": false,
+  "epsilon_pgd_training": 0.1
 
 }

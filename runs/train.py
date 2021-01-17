@@ -28,6 +28,10 @@ def train(config):
     backbone_name = config['backbone']
     robust_training = config['robust_training']
 
+    if os.path.isfile(config["model_dir"] + '/results/training.done'):
+        print("Already trained")
+        return
+
     if eval_attack_during_training:
         from foolbox import TensorFlowModel, accuracy, Model
         from foolbox.attacks import LinfPGD
@@ -43,7 +47,7 @@ def train(config):
         fmodel: Model = TensorFlowModel(model, bounds=(0, 255), preprocessing=pre)
         fmodel = fmodel.transform_bounds((0, 255))
         attack = LinfPGD()
-        epsilons = [0.1]
+        epsilons_evaluation = [0.1]
 
     model_dir = config['model_dir']
     start_iteration = 0
@@ -96,14 +100,14 @@ def train(config):
 
             if eval_attack_during_training:
                 raw_advs, clipped_advs, success = attack(fmodel, tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
-                            epsilons=epsilons)
+                            epsilons=epsilons_evaluation)
 
                 model.evaluate(tf.cast(clipped_advs[0], tf.float32), tf.cast(y_batch, tf.int64), step=ii, epsilon=epsilon,
                             summary=summary_writer2)
 
                 robust_accuracy = 1 - success.numpy().mean(axis=-1)
                 print("robust accuracy for perturbations with")
-                for eps, acc in zip(epsilons, robust_accuracy):
+                for eps, acc in zip(epsilons_evaluation, robust_accuracy):
                     print(f"  Linf norm < {eps:<6}: {acc.item() * 100:4.1f} %")
 
             if training_time != 0:
@@ -118,6 +122,12 @@ def train(config):
 
         # Training step
         start = timer()
+
+        if config['pgd_training']:
+            raw_advs, clipped_advs, success = attack(fmodel, tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
+                                                     epsilons=config['epsilon_pgd_training'])
+            x_batch = clipped_advs
+
         model.train_step(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64), epsilon=epsilon, robust=robust_training)
         end = timer()
         training_time += end - start
