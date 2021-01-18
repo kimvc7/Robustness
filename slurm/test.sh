@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --array=109,136,143,179,182,184
-#SBATCH -n 1
+#SBATCH --array=283,284
+# SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --job-name=robustness
-#SBATCH --exclude=node003,node004
+#SBATCH --exclude=node003,node004,node074,node021,node025,node020,node083,node022,node018,node089,node023,node028
 #SBATCH --mem=5GB
 #SBATCH -t 0:20:00
 #SBATCH -D ./log/
