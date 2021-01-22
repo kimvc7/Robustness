@@ -128,7 +128,8 @@ def train(config):
                                                      epsilons=config['epsilon_pgd_training'])
             x_batch = clipped_advs
 
-        model.train_step(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64), epsilon=epsilon, robust=robust_training)
+        model.train_step(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
+                         epsilon=epsilon, clipping=config['clipping_training'], robust=robust_training)
         end = timer()
         training_time += end - start
 

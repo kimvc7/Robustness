@@ -54,9 +54,9 @@ class robustCNN(robustify_network.RobustifyNetwork):
     self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
 
   def feedforward_pass(self, input):
-      self.x_input = tf.reshape(input, [-1, 28, 28, 1])
+      self.x_input_image = tf.reshape(input, [-1, 28, 28, 1])
 
-      h1 = self._conv2d(self.x_input, self.W_conv1) + self.b_conv1
+      h1 = self._conv2d(self.x_input_image, self.W_conv1) + self.b_conv1
       h_conv1 = tf.nn.relu(h1)
       h_pool1 = self._max_pool_2x2(h_conv1)
 

@@ -21,19 +21,21 @@ class RobustifyNetwork(tf.keras.Model):
     return self.feedforward_pass(input)
 
   @tf.function
-  def train_step(self, input, label, epsilon, robust=True):
-    self._full_call(input, label, epsilon, robust=robust, evaluate=False)
+  def train_step(self, input, label, epsilon, robust=True, clipping=False):
+    self._full_call(input, label, epsilon, robust=robust, clipping=clipping, evaluate=False)
 
   @tf.function
-  def evaluate(self, input, label, epsilon, step=-1, summary=None):
-    self._full_call(input, label, epsilon, step=step, robust=True, evaluate=True, summary=summary)
+  def evaluate(self, input, label, epsilon, step=-1, summary=None, clipping=False):
+    self._full_call(input, label, epsilon, step=step, robust=True, clipping=clipping, evaluate=True, summary=summary)
 
-  def _full_call(self, input, label, epsilon, robust=True, evaluate=False, summary=None, step=-1):
+  def _full_call(self, input, label, epsilon, robust=True, clipping=False, evaluate=False, summary=None, step=-1):
 
     self.x_input = input
     self.y_input = label
-    #self.M = tf.minimum(1 - self.x_input, self.eps)
-    #self.m = tf.maximum(-self.x_input, -self.eps)
+
+    if clipping:
+      self.M = tf.math.minimum(1 - self.x_input, epsilon)
+      self.m = tf.math.maximum(-self.x_input, -epsilon)
 
     with tf.GradientTape() as self.tape:
       with tf.GradientTape(persistent=True) as self.second_tape:
@@ -56,10 +58,12 @@ class RobustifyNetwork(tf.keras.Model):
         sum_exps = 0
         for i in range(self.num_classes):
           grad = self.second_tape.gradient(self.nom_exponent[i], self.x_input)
-          #positive_terms = tf.multiply(self.M, tf.nn.relu(grad[0]))
-          #negative_terms = tf.multiply(self.m, tf.nn.relu(-grad[0]))
-          # exponent = tf.reduce_sum(positive_terms - negative_terms, axis=1) + self.nom_exponent[i]
-          exponent = epsilon * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
+          if clipping:
+            positive_terms = tf.math.multiply(self.M, tf.nn.relu(grad[0]))
+            negative_terms = tf.math.multiply(self.m, tf.nn.relu(-grad[0]))
+            exponent = tf.reduce_sum(positive_terms - negative_terms, axis=1) + self.nom_exponent[i]
+          else:
+            exponent = epsilon * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
           sum_exps += tf.math.exp(exponent)
 
         self.loss = tf.reduce_mean(tf.math.log(sum_exps))
