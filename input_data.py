@@ -111,7 +111,7 @@ class _DataSet(object):
       return self._images[start:end], self._labels[start:end]
 
 
-def load_data_set(results_dir, data_set, config=None, seed=None, reshape=True, dtype=dtypes.float32):
+def load_data_set(results_dir, data_set, seed=None, reshape=True, dtype=dtypes.float32):
 
   with open(results_dir + 'configs_datasets/' + str(data_set) + '.json') as config_file:
     config = json.load(config_file)
