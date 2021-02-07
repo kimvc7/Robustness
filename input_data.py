@@ -4,6 +4,8 @@ import collections
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import random_seed
 import numpy
+import json
+import pickle
 
 _Datasets = collections.namedtuple('_Datasets', ['train', 'validation', 'test'])
 
@@ -109,18 +111,41 @@ class _DataSet(object):
       return self._images[start:end], self._labels[start:end]
 
 
-def load_data_set(validation_size, data_set, seed=None, reshape=True, dtype=dtypes.float32):
-  if data_set == "cifar":
-    (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
-    num_features = X_train.shape[1]*X_train.shape[2]*X_train.shape[3]
-  if data_set == "mnist":
-    (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
-    num_features = X_train.shape[1]*X_train.shape[2]
+def load_data_set(results_dir, data_set, config=None, seed=None, reshape=True, dtype=dtypes.float32):
 
-  X_val = X_train[:validation_size]
-  y_val = y_train[:validation_size]
-  X_train = X_train[validation_size:]
-  y_train = y_train[validation_size:]
+  with open(results_dir + 'configs_datasets/' + str(data_set) + '.json') as config_file:
+    config = json.load(config_file)
+
+  if config["dataset_name"] == "cifar" or config["dataset_name"] == "mnist":
+    if config["dataset_name"] == "cifar":
+      (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
+      num_features = X_train.shape[1]*X_train.shape[2]*X_train.shape[3]
+    if config["dataset_name"] == "mnist":
+      (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
+      num_features = X_train.shape[1]*X_train.shape[2]
+
+    X_val = X_train[:config["validation_size"]]
+    y_val = y_train[:config["validation_size"]]
+    X_train = X_train[config["validation_size"]:]
+    y_train = y_train[config["validation_size"]:]
+
+  elif config["dataset_name"] == "Gauss_MLP-1":
+
+    for set in ["train", "val", "test"]:
+      with open(results_dir + 'datasets/' + set + "_" + config["name_file"], 'rb') as dataset_file:
+        tmp = pickle.load(dataset_file)
+
+        if set == "train":
+          X_train = tmp["data"]
+          y_train = tmp["labels"]
+        elif set == "val":
+          X_val = tmp["data"][:config["validation_size"]]
+          y_val = tmp["labels"][:config["validation_size"]]
+        else:
+          X_test = tmp["data"][:config["testing_size"]]
+          y_test = tmp["labels"][:config["testing_size"]]
+
+    num_features = X_train.shape[1]
 
   print("There are", X_train.shape[0], "samples in the training set.")
   print("There are", X_val.shape[0], "samples in the validation set.")

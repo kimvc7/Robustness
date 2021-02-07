@@ -3,16 +3,19 @@ import json
 import argparse
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("--experiment_name", type=str, default="",
+                            help="config instruction")
 parser.add_argument("--experiment_id", type=int, default="0",
                             help="id of json file")
 parser.add_argument("--run", type=str, default="idle",
-                            help="run to perform on epxeriment <id>")
+                            help="run to perform on experiment <id>")
 parser.add_argument("--filesystem", type=str, default="local",
                             help="filesystem")
 parser.add_argument("--gpu_id", type=str, default="",
                             help="gpu IDs")
 parser.add_argument("--config", type=str, default="",
                             help="config instruction")
+
 args = parser.parse_args()
 print(args)
 
@@ -23,12 +26,19 @@ if args.filesystem == 'local':
 elif args.filesystem == 'om':
     results_dir = '/vast/robustness/'
 
+full_results_dir = results_dir + args.experiment_name + '/'
+
 if not args.run == 'config':
 
-    with open(results_dir + 'configs/' + str(args.experiment_id) + '.json') as config_file:
+    with open(full_results_dir + 'configs/' + str(args.experiment_id) + '.json') as config_file:
         config = json.load(config_file)
 
-    config['model_dir'] = results_dir + config['model_name']
+    config['model_dir'] = full_results_dir + config['model_name']
+    config['results_dir'] = results_dir
+
+    with open(results_dir + 'configs_datasets/' + str(config["data_set"]) + '.json') as config_file:
+        config_dataset = json.load(config_file)
+    config["num_classes"] = config_dataset["num_classes"]  # This is going to be needed to define the architecture
 
     if args.run == 'train':
         import runs.train as run
@@ -38,10 +48,18 @@ if not args.run == 'config':
         run.test(config)
 
 else:
+    if args.experiment_name == 'mnist':
+        import runs.config_experiments_mnist as run_exp
+    elif args.experiment_name == 'synthetic':
+        import runs.config_experiments_synthetic as run_exp
+
     if args.config == 'generate':
-        import runs.config_experiments as run
-        run.config_experiments(results_dir)
+        run_exp.config_experiments(full_results_dir)
+
+    elif args.config == 'generate_datasets':
+        import runs.config_datasets as run
+        run.config_datasets(results_dir)
+
     elif args.config == 'check':
-        import runs.config_experiments as run
-        experiment_list = run.config_experiments(results_dir, create_json=False)
-        run.check_uncompleted(results_dir, experiment_list)
+        experiment_list = run_exp.config_experiments(full_results_dir, create_json=False)
+        run_exp.check_uncompleted(full_results_dir, experiment_list)

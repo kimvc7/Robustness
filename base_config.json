@@ -3,8 +3,7 @@
   "model_name": "0",
   "restart": false,
 
-  "data_set": "mnist",
-  "num_classes": 10,
+  "data_set": 0,
 
   "backbone": "MLP",
   "l1_size": 200,
