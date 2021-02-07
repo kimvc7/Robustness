@@ -16,6 +16,7 @@ class robustMLP(robustify_network.RobustifyNetwork):
     initial_learning_rate = config['initial_learning_rate']
     training_batch_size = config['training_batch_size']
     num_classes = config['num_classes']
+    batch_decrease_learning_rate = config['batch_decrease_learning_rate']
 
     self.train_variables = []
 
@@ -36,7 +37,8 @@ class robustMLP(robustify_network.RobustifyNetwork):
 
     # Setting up the optimizer
     self.learning_rate = \
-      tf.keras.optimizers.schedules.ExponentialDecay(initial_learning_rate, training_batch_size * 5, 0.85, staircase=True)
+      tf.keras.optimizers.schedules.ExponentialDecay(initial_learning_rate,
+                                                     training_batch_size * batch_decrease_learning_rate, 0.85, staircase=True)
 
     self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
 
