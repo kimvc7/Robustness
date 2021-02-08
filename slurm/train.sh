@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --array=134-999
+#SBATCH --array=675-855
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --job-name=robustness
 #SBATCH --exclude=node028,node022,node030,node025,node023,node004,node003,node021,node022,node026,node089
-#SBATCH --mem=5GB
+#SBATCH --mem=20GB
 #SBATCH -t 2:00:00
 #SBATCH -D ./log/
 #SBATCH --partition=cbmm

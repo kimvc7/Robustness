@@ -31,7 +31,7 @@ def config_experiments(results_dir, create_json=True):
 
         for net in ["MLP"]:
             for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon in [0.01, 0.05, 0.1, 0.25, 0.5, 1]:
+                for epsilon in [1e-3, 1e-2, 1e-1, 1]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
@@ -50,7 +50,7 @@ def config_experiments(results_dir, create_json=True):
 
         for net in ["MLP+pgd"]:
             for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon_pgd_training in [0.1, 0.3, 0.5]:
+                for epsilon_pgd_training in [1e-3, 1e-2, 1e-1, 1]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
@@ -68,10 +68,11 @@ def config_experiments(results_dir, create_json=True):
                     experiment_list.append(config.copy())
                     id += 1
 
+        ''' 
         for net in ["MLP+pgd"]:
             for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon in [0.01, 0.05, 0.1, 0.25, 0.5, 1]:
-                    for epsilon_pgd_training in [0.1, 0.3, 0.5]:
+                for epsilon in [1e-3, 1e-2, 1e-1, 1]:
+                    for epsilon_pgd_training in [1e-3, 1e-2, 1e-1, 1]:
                         config = base_config.copy()
                         config["data_set"] = dataset
                         config["model_name"] = str(id)
@@ -88,6 +89,7 @@ def config_experiments(results_dir, create_json=True):
                                 json.dump(config, json_file)
                         experiment_list.append(config.copy())
                         id += 1
+        '''
 
     print(str(id) + " config files created")
     return experiment_list

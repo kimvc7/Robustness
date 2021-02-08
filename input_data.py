@@ -145,6 +145,8 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, dtype=dtypes.f
           X_test = tmp["data"][:config["testing_size"]]
           y_test = tmp["labels"][:config["testing_size"]]
 
+        del tmp
+
     num_features = X_train.shape[1]
 
   print("There are", X_train.shape[0], "samples in the training set.")
