@@ -32,7 +32,7 @@ def train(config):
         print("Already trained")
         return
 
-    if eval_attack_during_training:
+    if eval_attack_during_training or config['pgd_training']:
         from foolbox import TensorFlowModel, accuracy, Model
         from foolbox.attacks import LinfPGD
 
