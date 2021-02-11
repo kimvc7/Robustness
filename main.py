@@ -26,7 +26,7 @@ if args.filesystem == 'local':
 elif args.filesystem == 'om':
     results_dir = '/vast/robustness/'
 elif args.filesystem == 'dgx1':
-    results_dir = '/raid/poggio/home/xboix/results/Robustness'
+    results_dir = '/raid/poggio/home/xboix/results/Robustness/'
 
 full_results_dir = results_dir + args.experiment_name + '/'
 
