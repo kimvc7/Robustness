@@ -152,16 +152,17 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, dtype=dtypes.f
     for set in ["train", "test"]:
       import numpy as np
       tmpX = np.genfromtxt(results_dir + 'datasets/' + config["name_file"] + set + "X.csv", delimiter=',')
+      tmpX = np.nan_to_num(tmpX, nan=0.0)
       tmpY = np.genfromtxt(results_dir + 'datasets/' + config["name_file"] + set + "Y.csv", delimiter=',')
 
       if set == "train":
         X_train = tmpX
         y_train = tmpY - 1
-        X_val = tmpX
-        y_val = tmpY - 1
       else:
         X_test = tmpX
         y_test = tmpY - 1
+        X_val = tmpX
+        y_val = tmpY - 1
 
       del tmpX
       del tmpY
@@ -170,6 +171,7 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, dtype=dtypes.f
 
   print("There are", X_train.shape[0], "samples in the training set.")
   print("There are", X_val.shape[0], "samples in the validation set.")
+  print("There are", X_train.shape[1], "features.")
 
   options = dict(dtype=dtype, reshape=reshape, num_features=num_features, seed=seed)
 

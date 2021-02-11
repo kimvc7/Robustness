@@ -20,6 +20,7 @@ def config_experiments(results_dir, create_json=True):
                 config["initial_learning_rate"] = lr
                 config["robust_training"] = False
                 config["pgd_training"] = False
+                config["max_num_training_steps"] = 5000
                 config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
 
                 if create_json:
@@ -37,6 +38,7 @@ def config_experiments(results_dir, create_json=True):
                     config["backbone"] = net
                     config["initial_learning_rate"] = lr
                     config["epsilon"] = epsilon
+                    config["max_num_training_steps"] = 5000
                     config["robust_training"] = True
                     config["pgd_training"] = False
                     config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
@@ -55,6 +57,7 @@ def config_experiments(results_dir, create_json=True):
                     config["model_name"] = str(id)
                     config["backbone"] = net
                     config["initial_learning_rate"] = lr
+                    config["max_num_training_steps"] = 5000
                     config["epsilon"] = epsilon
                     config["robust_training"] = False
                     config["pgd_training"] = True
