@@ -135,17 +135,36 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, dtype=dtypes.f
       with open(results_dir + 'datasets/' + set + "_" + config["name_file"], 'rb') as dataset_file:
         tmp = pickle.load(dataset_file)
 
-        if set == "train":
-          X_train = tmp["data"]
-          y_train = tmp["labels"]
-        elif set == "val":
-          X_val = tmp["data"][:config["validation_size"]]
-          y_val = tmp["labels"][:config["validation_size"]]
-        else:
-          X_test = tmp["data"][:config["testing_size"]]
-          y_test = tmp["labels"][:config["testing_size"]]
+      if set == "train":
+        X_train = tmp["data"]
+        y_train = tmp["labels"]
+      elif set == "val":
+        X_val = tmp["data"][:config["validation_size"]]
+        y_val = tmp["labels"][:config["validation_size"]]
+      else:
+        X_test = tmp["data"][:config["testing_size"]]
+        y_test = tmp["labels"][:config["testing_size"]]
 
-        del tmp
+      del tmp
+
+  elif config["dataset_name"] == "UCI":
+
+    for set in ["train", "test"]:
+      import numpy as np
+      tmpX = np.genfromtxt(results_dir + 'datasets/' + config["name_file"] + set + "X.csv", delimiter=',')
+      tmpY = np.genfromtxt(results_dir + 'datasets/' + config["name_file"] + set + "Y.csv", delimiter=',')
+
+      if set == "train":
+        X_train = tmpX
+        y_train = tmpY - 1
+        X_val = tmpX
+        y_val = tmpY - 1
+      else:
+        X_test = tmpX
+        y_test = tmpY - 1
+
+      del tmpX
+      del tmpY
 
     num_features = X_train.shape[1]
 

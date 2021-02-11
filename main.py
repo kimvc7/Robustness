@@ -52,6 +52,8 @@ else:
         import runs.config_experiments_mnist as run_exp
     elif args.experiment_name == 'synthetic':
         import runs.config_experiments_synthetic as run_exp
+    elif args.experiment_name == 'uci':
+        import runs.config_experiments_uci as run_exp
 
     if args.config == 'generate':
         run_exp.config_experiments(full_results_dir)

@@ -1,5 +1,6 @@
 import json
 import os
+import numpy as np
 
 
 def config_datasets(datasets_dir, create_json=True):
@@ -50,6 +51,22 @@ def config_datasets(datasets_dir, create_json=True):
                         json.dump(config, json_file)
                 dataset_list.append(config.copy())
                 id += 1
+
+    print(id)
+    # UCI Dataset curated by Kim
+    for dataset_id in range(46):
+        config = {}
+        config["dataset_id"] = id
+        config["dataset_name"] = "UCI"
+        config["name_file"] = 'uci' + str(dataset_id)
+        tmpY = np.genfromtxt(datasets_dir + 'datasets/' + config["name_file"] + "train" + "Y.csv", delimiter=',')
+        config["num_classes"] = int(np.max(tmpY))
+
+        if create_json:
+            with open(datasets_dir + 'configs_datasets/' + str(id)+'.json', 'w') as json_file:
+                json.dump(config, json_file)
+        dataset_list.append(config.copy())
+        id += 1
 
     print(str(id) + " dataset config files created")
     return dataset_list
