@@ -42,10 +42,10 @@ def train(config):
     model = get_network(backbone_name, config, num_features)
 
     # Setting up attacks
-    if eval_attack_during_training:
-        pre = dict(std=None, mean=None)  # RGB to BGR
-        fmodel: Model = TensorFlowModel(model, bounds=(0, 255), preprocessing=pre)
-        fmodel = fmodel.transform_bounds((0, 255))
+    if eval_attack_during_training or config['pgd_training']:
+        pre = dict(std=None, mean=None)
+        fmodel: Model = TensorFlowModel(model, bounds=(config["bound_lower"], config["bound_upper"]), preprocessing=pre)
+        fmodel = fmodel.transform_bounds((config["bound_lower"], config["bound_upper"]))
         attack = LinfPGD()
         epsilons_evaluation = [0.1]
 

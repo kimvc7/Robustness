@@ -21,6 +21,8 @@ def config_experiments(results_dir, create_json=True):
                 config["robust_training"] = False
                 config["pgd_training"] = False
                 config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
+                config["bound_lower"] = -1e10
+                config["bound_upper"] = 1e10
 
                 if create_json:
                     with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
@@ -40,6 +42,8 @@ def config_experiments(results_dir, create_json=True):
                     config["robust_training"] = True
                     config["pgd_training"] = False
                     config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
+                    config["bound_lower"] = -1e10
+                    config["bound_upper"] = 1e10
 
                     if create_json:
                         with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
@@ -60,6 +64,8 @@ def config_experiments(results_dir, create_json=True):
                     config["pgd_training"] = True
                     config["epsilon_pgd_training"] = epsilon_pgd_training
                     config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
+                    config["bound_lower"] = -1e10
+                    config["bound_upper"] = 1e10
 
                     if create_json:
                         with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:

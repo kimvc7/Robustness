@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH --array=0-999
+#SBATCH --array=1-999
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --job-name=robustness
 #SBATCH --exclude=node028,node022,node030,node025,node023,node004,node003,node021,node022,node026,node089
-#SBATCH --mem=2GB
+#SBATCH --mem=4GB
 #SBATCH -t 0:20:00
 #SBATCH -D ./log/
-#SBATCH --partition=cbmm
+#SBATCH --partition=use-everything
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=any-gpu
 

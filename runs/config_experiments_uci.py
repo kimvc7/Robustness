@@ -22,6 +22,8 @@ def config_experiments(results_dir, create_json=True):
                 config["pgd_training"] = False
                 config["max_num_training_steps"] = 5000
                 config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
+                config["bound_lower"] = -1e10
+                config["bound_upper"] = 1e10
 
                 if create_json:
                     with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
@@ -42,6 +44,8 @@ def config_experiments(results_dir, create_json=True):
                     config["robust_training"] = True
                     config["pgd_training"] = False
                     config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
+                    config["bound_lower"] = -1e10
+                    config["bound_upper"] = 1e10
 
                     if create_json:
                         with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
@@ -53,6 +57,11 @@ def config_experiments(results_dir, create_json=True):
             for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
                 for epsilon_pgd_training in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1]:
                     config = base_config.copy()
+
+                    ####!!!!!!!!!
+                    config["restart"] = True
+                    #####!!!!!!!!!
+
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["backbone"] = net
@@ -63,6 +72,8 @@ def config_experiments(results_dir, create_json=True):
                     config["pgd_training"] = True
                     config["epsilon_pgd_training"] = epsilon_pgd_training
                     config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
+                    config["bound_lower"] = -1e10
+                    config["bound_upper"] = 1e10
 
                     if create_json:
                         with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:

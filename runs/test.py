@@ -43,8 +43,8 @@ def test(config):
 
     #Setting up attacks
     pre = dict(std=None, mean=None)  # RGB to BGR
-    fmodel: Model = TensorFlowModel(model, bounds=(0, 255), preprocessing=pre)
-    fmodel = fmodel.transform_bounds((0, 255))
+    fmodel: Model = TensorFlowModel(model, bounds=(config["bound_lower"], config["bound_upper"]), preprocessing=pre)
+    fmodel = fmodel.transform_bounds((config["bound_lower"], config["bound_upper"]))
 
     epsilons_inf = [
             0.0,

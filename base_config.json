@@ -26,6 +26,9 @@
   "epsilon": 0.1,
   "increasing_epsilon": false,
 
+  "bound_upper": 255,
+  "bound_lower": 0,
+
   "pgd_training": false,
   "epsilon_pgd_training": 0.1
 
