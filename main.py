@@ -19,7 +19,7 @@ parser.add_argument("--config", type=str, default="",
 args = parser.parse_args()
 print(args)
 
-#os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
+os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
 
 if args.filesystem == 'local':
     results_dir = './results/'
