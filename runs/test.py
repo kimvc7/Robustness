@@ -32,7 +32,8 @@ def test(config):
         return
 
     # Setting up the data and the model
-    data = input_data.load_data_set(results_dir=config['results_dir'], data_set=config['data_set'], seed=seed)
+    data = input_data.load_data_set(results_dir=config['results_dir'], data_set=config['data_set'],
+                                    standarized=config["standarize"], seed=seed)
     num_features = data.train.images.shape[1]
     model = get_network(backbone_name, config, num_features)
 
