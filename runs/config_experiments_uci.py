@@ -57,11 +57,6 @@ def config_experiments(results_dir, create_json=True):
             for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
                 for epsilon_pgd_training in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1]:
                     config = base_config.copy()
-
-                    ####!!!!!!!!!
-                    config["restart"] = True
-                    #####!!!!!!!!!
-
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["backbone"] = net

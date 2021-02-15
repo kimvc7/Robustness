@@ -111,7 +111,7 @@ class _DataSet(object):
       return self._images[start:end], self._labels[start:end]
 
 
-def load_data_set(results_dir, data_set, seed=None, reshape=True, dtype=dtypes.float32):
+def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=False, dtype=dtypes.float32):
 
   with open(results_dir + 'configs_datasets/' + str(data_set) + '.json') as config_file:
     config = json.load(config_file)
@@ -128,6 +128,21 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, dtype=dtypes.f
     y_val = y_train[:config["validation_size"]]
     X_train = X_train[config["validation_size"]:]
     y_train = y_train[config["validation_size"]:]
+
+    if standarized:
+
+      def standarize(X):
+        import numpy as np
+        m = np.mean(X, axis=(1, 2))
+        X = X - m[:, np.newaxis, np.newaxis]
+        d = np.std(X, axis=(1, 2))
+        X = X / d[:, np.newaxis, np.newaxis]
+        X[np.isnan(X)] = 0
+        return X
+
+      X_train = standarize(X_train)
+      X_val = standarize(X_val)
+      X_test = standarize(X_test)
 
   elif config["dataset_name"] == "Gauss_MLP-1":
 
@@ -151,18 +166,21 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, dtype=dtypes.f
 
     for set in ["train", "test"]:
       import numpy as np
-      tmpX = np.genfromtxt(results_dir + 'datasets/' + config["name_file"] + set + "X.csv", delimiter=',')
+      tmpX = np.genfromtxt(results_dir + 'datasets/UCI/imp_' + config["name_file"] + '_' + set + "X.csv", delimiter=',')
       tmpX = np.nan_to_num(tmpX, nan=0.0)
-      tmpY = np.genfromtxt(results_dir + 'datasets/' + config["name_file"] + set + "Y.csv", delimiter=',')
+      tmpY = np.genfromtxt(results_dir + 'datasets/UCI/' + config["name_file"] + '_' + set + "Y.csv", delimiter=',')
 
       if set == "train":
-        X_train = tmpX
-        y_train = tmpY - 1
+        num_samples = np.shape(tmpY)[0]
+        num_train_samples = int(np.round(num_samples*0.75))
+        X_train = tmpX[:num_train_samples]
+        y_train = tmpY[:num_train_samples] - 1
+        X_val = tmpX[num_train_samples:]
+        y_val = tmpY[num_train_samples:] - 1
       else:
         X_test = tmpX
         y_test = tmpY - 1
-        X_val = tmpX
-        y_val = tmpY - 1
+
 
       del tmpX
       del tmpY

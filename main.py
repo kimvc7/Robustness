@@ -52,6 +52,8 @@ if not args.run == 'config':
 else:
     if args.experiment_name == 'mnist':
         import runs.config_experiments_mnist as run_exp
+    elif args.experiment_name == 'mnist_std':
+        import runs.config_experiments_mnist_standarized as run_exp
     elif args.experiment_name == 'synthetic':
         import runs.config_experiments_synthetic as run_exp
     elif args.experiment_name == 'uci':

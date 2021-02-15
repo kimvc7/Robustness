@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --array=856-890
+#SBATCH --array=0-989
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --job-name=robustness
 #SBATCH --exclude=node028,node022,node030,node025,node023,node004,node003,node021,node022,node026,node089
-#SBATCH --mem=5GB
+#SBATCH --mem=4GB
 #SBATCH -t 0:10:00
 #SBATCH -D ./log/
 #SBATCH --partition=use-everything
@@ -19,9 +19,9 @@ echo $CUDA_DEVICE_ORDER
 
 singularity exec -B /om:/om -B /om2:/om2 -B /scratch/user/xboix:/vast --nv /om/user/xboix/singularity/xboix-tensorflow2.4.simg \
 python3 main.py \
---experiment_id=${SLURM_ARRAY_TASK_ID} \
+--experiment_id=$((2000+${SLURM_ARRAY_TASK_ID})) \
 --filesystem=om \
---experiment_name=synthetic \
+--experiment_name=uci \
 --run=test \
 --gpu_id=0
 

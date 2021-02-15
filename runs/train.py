@@ -37,7 +37,8 @@ def train(config):
         from foolbox.attacks import LinfPGD
 
     # Setting up the data and the model
-    data = input_data.load_data_set(results_dir=config['results_dir'], data_set=config['data_set'], seed=seed)
+    data = input_data.load_data_set(results_dir=config['results_dir'], data_set=config['data_set'],
+                                    standarized=config["standarize"], seed=seed)
     num_features = data.train.images.shape[1]
     model = get_network(backbone_name, config, num_features)
 
@@ -70,10 +71,10 @@ def train(config):
         model.load_all(tf.train.latest_checkpoint(model_dir + '/checkpoints/'))
 
     # Initialize the summary writer, global variables, and our time counter.
-    summary_writer = tf.summary.create_file_writer(model_dir + "/Natural")
-    summary_writer1 = tf.summary.create_file_writer(model_dir + "/Test")
+    summary_train = tf.summary.create_file_writer(model_dir + "/Train")
+    summary_val = tf.summary.create_file_writer(model_dir + "/Validation")
     if eval_attack_during_training:
-        summary_writer2 = tf.summary.create_file_writer(model_dir + "/Adversarial")
+        summary_adv = tf.summary.create_file_writer(model_dir + "/Adversarial")
     sys.stdout.flush()
 
     # Main training loop
@@ -94,16 +95,16 @@ def train(config):
             x_test, y_test = data.validation.next_batch(batch_size)
 
             model.evaluate(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64), step=ii, epsilon=epsilon,
-                            summary=summary_writer1)
+                            summary=summary_train)
             model.evaluate(tf.cast(x_test, tf.float32), tf.cast(y_test, tf.int64), step=ii, epsilon=epsilon,
-                            summary=summary_writer)
+                            summary=summary_val)
 
             if eval_attack_during_training:
                 raw_advs, clipped_advs, success = attack(fmodel, tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
                             epsilons=epsilons_evaluation)
 
                 model.evaluate(tf.cast(clipped_advs[0], tf.float32), tf.cast(y_batch, tf.int64), step=ii, epsilon=epsilon,
-                            summary=summary_writer2)
+                            summary=summary_adv)
 
                 robust_accuracy = 1 - success.numpy().mean(axis=-1)
                 print("robust accuracy for perturbations with")

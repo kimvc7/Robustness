@@ -20,6 +20,7 @@ def config_datasets(datasets_dir, create_json=True):
     dataset_list.append(config.copy())
     id += 1
 
+
     config = {}
     config["dataset_id"] = id
     config["dataset_name"] = "cifar"
@@ -54,12 +55,17 @@ def config_datasets(datasets_dir, create_json=True):
 
     print(id)
     # UCI Dataset curated by Kim
+    dataset_names = []
+    with open(datasets_dir + 'datasets/UCI/datasets.csv', 'r') as file:
+        for line in file:
+            dataset_names.append(line[:-1])
+
     for dataset_id in range(46):
         config = {}
         config["dataset_id"] = id
         config["dataset_name"] = "UCI"
-        config["name_file"] = 'uci' + str(dataset_id)
-        tmpY = np.genfromtxt(datasets_dir + 'datasets/' + config["name_file"] + "train" + "Y.csv", delimiter=',')
+        config["name_file"] = dataset_names[dataset_id]
+        tmpY = np.genfromtxt(datasets_dir + 'datasets/UCI/' + config["name_file"] + "_train" + "Y.csv", delimiter=',')
         config["num_classes"] = int(np.max(tmpY))
 
         if create_json:
