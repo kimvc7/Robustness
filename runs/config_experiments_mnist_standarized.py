@@ -76,6 +76,75 @@ def config_experiments(results_dir, create_json=True):
                 experiment_list.append(config.copy())
                 id += 1
 
+    # Models with robustness
+    for net in ["CNN"]:
+        for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
+            config = base_config.copy()
+            config["data_set"] = dataset
+            config["standarize"] = True
+            config["standarize_multiplier"] = 128
+            config["model_name"] = str(id)
+            config["backbone"] = net
+            config["initial_learning_rate"] = lr
+            config["robust_training"] = False
+            config["pgd_training"] = False
+            config["max_num_training_steps"] = 10000
+            config["bound_lower"] = -1e10
+            config["bound_upper"] = 1e10
+
+            if create_json:
+                with open(results_dir + 'configs/' + str(id) + '.json', 'w') as json_file:
+                    json.dump(config, json_file)
+            experiment_list.append(config.copy())
+            id += 1
+
+    for net in ["CNN"]:
+        for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
+            for epsilon in [1e-5, 1e-4, 1e-3, 1e-2, 5e-2, 1e-1, 2.5e-1, 5e-1, 1]:
+                config = base_config.copy()
+                config["data_set"] = dataset
+                config["standarize"] = True
+                config["standarize_multiplier"] = 128
+                config["model_name"] = str(id)
+                config["backbone"] = net
+                config["initial_learning_rate"] = lr
+                config["epsilon"] = epsilon
+                config["max_num_training_steps"] = 10000
+                config["robust_training"] = True
+                config["pgd_training"] = False
+                config["bound_lower"] = -1e10
+                config["bound_upper"] = 1e10
+
+                if create_json:
+                    with open(results_dir + 'configs/' + str(id) + '.json', 'w') as json_file:
+                        json.dump(config, json_file)
+                experiment_list.append(config.copy())
+                id += 1
+    print(id)
+    for net in ["CNN+pgd"]:
+        for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
+            for epsilon_pgd_training in [1e-5, 1e-4, 1e-3, 1e-2, 5e-2, 1e-1, 2.5e-1, 5e-1, 1]:
+                config = base_config.copy()
+                config["data_set"] = dataset
+                config["standarize"] = True
+                config["standarize_multiplier"] = 128
+                config["model_name"] = str(id)
+                config["backbone"] = net
+                config["initial_learning_rate"] = lr
+                config["max_num_training_steps"] = 10000
+                config["epsilon"] = epsilon
+                config["robust_training"] = False
+                config["pgd_training"] = True
+                config["epsilon_pgd_training"] = epsilon_pgd_training
+                config["bound_lower"] = -1e10
+                config["bound_upper"] = 1e10
+
+                if create_json:
+                    with open(results_dir + 'configs/' + str(id) + '.json', 'w') as json_file:
+                        json.dump(config, json_file)
+                experiment_list.append(config.copy())
+                id += 1
+
     print(str(id) + " config files created")
     return experiment_list
 

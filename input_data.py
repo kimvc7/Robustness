@@ -111,17 +111,21 @@ class _DataSet(object):
       return self._images[start:end], self._labels[start:end]
 
 
-def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=False, dtype=dtypes.float32):
+def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=False, multiplier=1, dtype=dtypes.float32):
 
   with open(results_dir + 'configs_datasets/' + str(data_set) + '.json') as config_file:
     config = json.load(config_file)
 
-  if config["dataset_name"] == "cifar" or config["dataset_name"] == "mnist":
+  if config["dataset_name"] == "cifar" or config["dataset_name"] == "mnist" \
+          or config["dataset_name"] == "fashion_mnist":
     if config["dataset_name"] == "cifar":
       (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
       num_features = X_train.shape[1]*X_train.shape[2]*X_train.shape[3]
     if config["dataset_name"] == "mnist":
       (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
+      num_features = X_train.shape[1]*X_train.shape[2]
+    if config["dataset_name"] == "fashion_mnist":
+      (X_train, y_train), (X_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
       num_features = X_train.shape[1]*X_train.shape[2]
 
     X_val = X_train[:config["validation_size"]]
@@ -140,9 +144,9 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=Fa
         X[np.isnan(X)] = 0
         return X
 
-      X_train = standarize(X_train)
-      X_val = standarize(X_val)
-      X_test = standarize(X_test)
+      X_train = multiplier*standarize(X_train)
+      X_val = multiplier*standarize(X_val)
+      X_test = multiplier*standarize(X_test)
 
   elif config["dataset_name"] == "Gauss_MLP-1":
 
@@ -186,6 +190,7 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=Fa
       del tmpY
 
     num_features = X_train.shape[1]
+
 
   print("There are", X_train.shape[0], "samples in the training set.")
   print("There are", X_val.shape[0], "samples in the validation set.")
