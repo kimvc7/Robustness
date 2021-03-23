@@ -20,10 +20,12 @@ class robustCNN(robustify_network.RobustifyNetwork):
     training_batch_size = config['training_batch_size']
     batch_decrease_learning_rate = config['batch_decrease_learning_rate']
 
+    self.mode = 'train'
+
     self.train_variables = []
 
     # first convolutional layer
-    self.W_conv1 = self._weight_variable([5,5,1,32], name="Variable")
+    self.W_conv1 = self._weight_variable([5,5,3,32], name="Variable")
     self.train_variables += [self.W_conv1]
     self.b_conv1 = self._bias_variable([32], name="Variable_1")
     self.train_variables += [self.b_conv1]
@@ -54,7 +56,11 @@ class robustCNN(robustify_network.RobustifyNetwork):
     self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
 
   def feedforward_pass(self, input):
-      self.x_input_image = tf.reshape(input, [-1, 28, 28, 1])
+
+      input = tf.reshape(input, [-1, 32, 32, 3])
+
+      self.x_input_image = tf.map_fn(lambda img: tf.image.random_crop(img, [28, 28, 3]), input)
+
 
       h1 = self._conv2d(self.x_input_image, self.W_conv1) + self.b_conv1
       h_conv1 = tf.nn.relu(h1)
@@ -68,6 +74,9 @@ class robustCNN(robustify_network.RobustifyNetwork):
 
       self.pre_softmax = tf.matmul(h_fc1, self.W_fc2) + self.b_fc2
       return self.pre_softmax
+
+  def set_mode(self, mode='train'):
+      self.mode = mode
 
   @staticmethod
   def _weight_variable(shape, name):

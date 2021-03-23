@@ -4,6 +4,7 @@ The abstract robust model
 import tensorflow as tf
 import numpy as np
 
+
 class RobustifyNetwork(tf.keras.Model):
 
   def __init__(self, num_classes, epsilon):

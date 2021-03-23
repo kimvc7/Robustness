@@ -54,6 +54,8 @@ else:
         import runs.config_experiments_mnist as run_exp
     elif args.experiment_name == 'mnist_std':
         import runs.config_experiments_mnist_standarized as run_exp
+    elif args.experiment_name == 'cifar':
+        import runs.config_experiments_cifar as run_exp
     elif args.experiment_name == 'synthetic':
         import runs.config_experiments_synthetic as run_exp
     elif args.experiment_name == 'uci':

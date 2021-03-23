@@ -94,6 +94,8 @@ def train(config):
             # Setting up data for testing and validation
             x_test, y_test = data.validation.next_batch(batch_size)
 
+            model.set_mode('test')
+
             model.evaluate(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64), step=ii, epsilon=epsilon,
                             summary=summary_train)
             model.evaluate(tf.cast(x_test, tf.float32), tf.cast(y_test, tf.int64), step=ii, epsilon=epsilon,
@@ -129,6 +131,7 @@ def train(config):
                                                      epsilons=config['epsilon_pgd_training'])
             x_batch = clipped_advs
 
+        model.set_mode('train')
         model.train_step(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
                          epsilon=epsilon, clipping=config['clipping_training'], robust=robust_training)
         end = timer()

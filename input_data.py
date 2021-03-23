@@ -116,11 +116,13 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=Fa
   with open(results_dir + 'configs_datasets/' + str(data_set) + '.json') as config_file:
     config = json.load(config_file)
 
+  color = False
   if config["dataset_name"] == "cifar" or config["dataset_name"] == "mnist" \
           or config["dataset_name"] == "fashion_mnist":
     if config["dataset_name"] == "cifar":
       (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
       num_features = X_train.shape[1]*X_train.shape[2]*X_train.shape[3]
+      color = True
     if config["dataset_name"] == "mnist":
       (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
       num_features = X_train.shape[1]*X_train.shape[2]
@@ -128,25 +130,36 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=Fa
       (X_train, y_train), (X_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
       num_features = X_train.shape[1]*X_train.shape[2]
 
-    X_val = X_train[:config["validation_size"]]
+
+    X_val = X_train[:config["validation_size"]].astype('float')
     y_val = y_train[:config["validation_size"]]
-    X_train = X_train[config["validation_size"]:]
+    X_train = X_train[config["validation_size"]:].astype('float')
     y_train = y_train[config["validation_size"]:]
+    X_test = X_test.astype('float')
 
     if standarized:
 
-      def standarize(X):
+      def standarize(X, color=False):
         import numpy as np
-        m = np.mean(X, axis=(1, 2))
-        X = X - m[:, np.newaxis, np.newaxis]
-        d = np.std(X, axis=(1, 2))
-        X = X / d[:, np.newaxis, np.newaxis]
-        X[np.isnan(X)] = 0
-        return X
 
-      X_train = multiplier*standarize(X_train)
-      X_val = multiplier*standarize(X_val)
-      X_test = multiplier*standarize(X_test)
+        if not color:
+          m = np.mean(X, axis=(1, 2))
+          X = X - m[:, np.newaxis, np.newaxis]
+          d = np.std(X, axis=(1, 2))
+          X = X / d[:, np.newaxis, np.newaxis]
+        else:
+          for idx in range(3):
+            m = np.mean(X[:,:,:,idx], axis=(1, 2))
+            X[:,:,:,idx] = X[:,:,:,idx] - m[:, np.newaxis, np.newaxis]
+            d = np.std(X[:,:,:,idx], axis=(1, 2))
+            X[:,:,:,idx] = X[:,:,:,idx] / d[:, np.newaxis, np.newaxis]
+
+          X[np.isnan(X)] = 0
+          return X
+
+      X_train = multiplier*standarize(X_train, color)
+      X_val = multiplier*standarize(X_val, color)
+      X_test = multiplier*standarize(X_test, color)
 
   elif config["dataset_name"] == "Gauss_MLP-1":
 
@@ -194,7 +207,7 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=Fa
 
   print("There are", X_train.shape[0], "samples in the training set.")
   print("There are", X_val.shape[0], "samples in the validation set.")
-  print("There are", X_train.shape[1], "features.")
+  print("There are", num_features, "features.")
 
   options = dict(dtype=dtype, reshape=reshape, num_features=num_features, seed=seed)
 

@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --array=310-489
+#SBATCH --array=0-65
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --job-name=robustness
-#SBATCH --mem=4GB
-#SBATCH -t 2:00:00
+#SBATCH --mem=8GB
+#SBATCH -t 4:00:00
 #SBATCH -D ./log/
 #SBATCH --partition=use-everything
 #SBATCH --gres=gpu:1
@@ -20,7 +20,7 @@ singularity exec -B /om:/om -B /om2:/om2 -B /scratch/user/xboix:/vast --nv /om/u
 python3 main.py \
 --experiment_id=$((0+${SLURM_ARRAY_TASK_ID})) \
 --filesystem=om \
---experiment_name=fashion \
+--experiment_name=cifar \
 --run=train \
 --gpu_id=0
 
@@ -29,7 +29,7 @@ singularity exec -B /om:/om -B /om2:/om2 -B /scratch/user/xboix:/vast --nv /om/u
 python3 main.py \
 --experiment_id=$((0+${SLURM_ARRAY_TASK_ID})) \
 --filesystem=om \
---experiment_name=fashion \
+--experiment_name=cifar \
 --run=test \
 --gpu_id=0
 

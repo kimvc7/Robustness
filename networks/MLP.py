@@ -18,6 +18,8 @@ class robustMLP(robustify_network.RobustifyNetwork):
     num_classes = config['num_classes']
     batch_decrease_learning_rate = config['batch_decrease_learning_rate']
 
+    self.mode = 'train'
+
     self.train_variables = []
 
     self.W1 = self._weight_variable([num_features, l1_size])
@@ -48,6 +50,9 @@ class robustMLP(robustify_network.RobustifyNetwork):
     self.h2 = tf.nn.relu(tf.matmul(self.h1, self.W2) + self.b2)
     self.pre_softmax = tf.matmul(self.h2, self.W3) + self.b3
     return self.pre_softmax
+
+  def set_mode(self, mode='train'):
+      self.mode = mode
 
   @staticmethod
   def _weight_variable(shape):
