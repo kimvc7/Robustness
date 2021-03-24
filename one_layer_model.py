@@ -42,7 +42,7 @@ class Model(object):
     self.y_pred = tf.argmax(self.pre_softmax, 1)
 
     robust_objective = 0
-    acc = 0
+    robust_acc = 0
 
     for k in range(num_classes):
       mask = tf.equal(self.y_input, k)
@@ -55,8 +55,11 @@ class Model(object):
       objectives_neg = tf.matmul(tf.nn.relu(h_1_neg), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_neg, filt), tf.nn.relu(-W2_k))
       objectives_max = tf.maximum(objectives_pos, objectives_neg)
       objectives = tf.nn.max_pool(tf.reshape(objectives_max, [1, num_features* tf.shape(z_k)[0], num_classes, 1]), [1, num_features, 1, 1], [1, num_features, 1, 1], "SAME")
-      robust_objective +=  tf.reduce_sum( tf.reduce_logsumexp(objectives + tf.reshape(self.b2  - self.b2[k], [1, 1, 10, 1]), axis = 2))
+      logits_diff = objectives + tf.reshape(self.b2  - self.b2[k], [1, 1, num_classes, 1])
+      robust_acc +=  tf.reduce_sum(tf.cast(tf.reduce_all(tf.less_equal(logits_diff, tf.constant([0.0])), axis = 2), tf.float32))
+      robust_objective +=  tf.reduce_sum( tf.reduce_logsumexp(objectives + tf.reshape(self.b2  - self.b2[k], [1, 1, num_classes, 1]), axis = 2))
 
+    self.robust_acc = robust_acc/tf.cast(tf.shape(self.y_input)[0], tf.float32)
 
     self.robust_l1_xent = robust_objective/tf.cast(tf.shape(self.y_input)[0], tf.float32)
 
@@ -100,10 +103,12 @@ class Model(object):
 
   @staticmethod
   def _weight_variable(shape):
-      initial = tf.glorot_uniform_initializer()
-      return tf.get_variable(shape=shape, initializer=initial, name=str(np.random.randint(1e10)))
+      initial = tf.truncated_normal(shape, stddev=0.03)
+      return tf.Variable(initial)
+      #initial = tf.glorot_uniform_initializer()
+      #return tf.get_variable(shape=shape, initializer=initial, name=str(np.random.randint(1e10)))
 
   @staticmethod
   def _bias_variable(shape):
-      initial = tf.constant(0.1, shape = shape)
+      initial = tf.truncated_normal(shape, stddev=0.1)
       return tf.Variable(initial)

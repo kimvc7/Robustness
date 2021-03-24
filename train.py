@@ -128,6 +128,7 @@ with tf.Session() as sess:
       print('    batch nat accuracy {:.4}'.format(nat_acc * 100))
       print('    batch adv accuracy {:.4}'.format(adv_acc * 100))
       print('    testing nat accuracy {:.4}'.format(test_acc * 100))
+      print('    testing robust acc', 100*sess.run(model.robust_acc, feed_dict=test_dict))
       print('    Batch Nat Xent {:.4}'.format(nat_xent))
       print('    Batch linf Adv Xent {:.4}'.format(adv_xent))
       print('    Batch Robust l1 Xent {:.4}'.format(robust_l1_xent))
