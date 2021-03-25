@@ -25,6 +25,8 @@
   "eval_attack_during_training": false,
   "epsilon": 0.1,
   "increasing_epsilon": false,
+  "l1_robustness": false,
+  "certificate": false,
 
   "bound_upper": 255,
   "bound_lower": 0,

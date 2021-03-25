@@ -24,8 +24,12 @@ class robustCNN(robustify_network.RobustifyNetwork):
 
     self.train_variables = []
 
+    self.num_channels = 3 #1
+    self.feat_size = 8 #7
+    self.im_size = 32 #28
+
     # first convolutional layer
-    self.W_conv1 = self._weight_variable([5,5,3,32], name="Variable")
+    self.W_conv1 = self._weight_variable([5,5,self.num_channels,32], name="Variable")
     self.train_variables += [self.W_conv1]
     self.b_conv1 = self._bias_variable([32], name="Variable_1")
     self.train_variables += [self.b_conv1]
@@ -37,7 +41,7 @@ class robustCNN(robustify_network.RobustifyNetwork):
     self.train_variables += [self.b_conv2]
 
     # first fully connected layer
-    self.W_fc1 = self._weight_variable([7 * 7 * 64, 1024], name="Variable_4")
+    self.W_fc1 = self._weight_variable([self.feat_size * self.feat_size * 64, 1024], name="Variable_4")
     self.train_variables += [self.W_fc1]
     self.b_fc1 = self._bias_variable([1024], name="Variable_5")
     self.train_variables += [self.b_fc1]
@@ -57,9 +61,9 @@ class robustCNN(robustify_network.RobustifyNetwork):
 
   def feedforward_pass(self, input):
 
-      input = tf.reshape(input, [-1, 32, 32, 3])
+      self.x_input_image = tf.reshape(input, [-1, self.im_size, self.im_size, self.num_channels])
 
-      self.x_input_image = tf.map_fn(lambda img: tf.image.random_crop(img, [28, 28, 3]), input)
+      #self.x_input_image = tf.map_fn(lambda img: tf.image.random_crop(img, [28, 28, 3]), input)
 
 
       h1 = self._conv2d(self.x_input_image, self.W_conv1) + self.b_conv1
@@ -69,7 +73,7 @@ class robustCNN(robustify_network.RobustifyNetwork):
       h_conv2 = tf.nn.relu(self._conv2d(h_pool1, self.W_conv2) + self.b_conv2)
       h_pool2 = self._max_pool_2x2(h_conv2)
 
-      h_pool2_flat = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
+      h_pool2_flat = tf.reshape(h_pool2, [-1, self.feat_size * self.feat_size * 64])
       h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, self.W_fc1) + self.b_fc1)
 
       self.pre_softmax = tf.matmul(h_fc1, self.W_fc2) + self.b_fc2

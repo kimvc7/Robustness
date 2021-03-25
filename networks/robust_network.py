@@ -10,4 +10,6 @@ def get_network(name_net, config, num_features):
     elif name_net == 'ResNet':
         from networks.ResNet import robustResNet as ResNet
         return ResNet(config)
-
+    elif name_net == 'OneLayer' or name_net == "OneLayer+pgd":
+        from networks.OneLayer import robustOneLayer as OneLayer
+        return OneLayer(config, num_features)

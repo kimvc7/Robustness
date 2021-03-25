@@ -133,7 +133,9 @@ def train(config):
 
         model.set_mode('train')
         model.train_step(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
-                         epsilon=epsilon, clipping=config['clipping_training'], robust=robust_training)
+                         epsilon=epsilon, clipping=config['clipping_training'],
+                         robust=robust_training, l1=config['l1_robustness'],
+                         certificate=config['certificate'])
         end = timer()
         training_time += end - start
 

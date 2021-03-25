@@ -1,10 +1,11 @@
 #!/bin/bash
-#SBATCH --array=0-65
+#SBATCH --array=100-345
 #SBATCH -n 1
 #SBATCH -c 2
+#SBATCH --exclude=node026
 #SBATCH --job-name=robustness
-#SBATCH --mem=8GB
-#SBATCH -t 4:00:00
+#SBATCH --mem=16GB
+#SBATCH -t 1:00:00
 #SBATCH -D ./log/
 #SBATCH --partition=use-everything
 #SBATCH --gres=gpu:1
@@ -23,16 +24,5 @@ python3 main.py \
 --experiment_name=cifar \
 --run=train \
 --gpu_id=0
-
-
-singularity exec -B /om:/om -B /om2:/om2 -B /scratch/user/xboix:/vast --nv /om/user/xboix/singularity/xboix-tensorflow2.5.0.simg \
-python3 main.py \
---experiment_id=$((0+${SLURM_ARRAY_TASK_ID})) \
---filesystem=om \
---experiment_name=cifar \
---run=test \
---gpu_id=0
-
-
 
 

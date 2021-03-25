@@ -147,6 +147,7 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=Fa
           X = X - m[:, np.newaxis, np.newaxis]
           d = np.std(X, axis=(1, 2))
           X = X / d[:, np.newaxis, np.newaxis]
+
         else:
           for idx in range(3):
             m = np.mean(X[:,:,:,idx], axis=(1, 2))
@@ -154,8 +155,8 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=Fa
             d = np.std(X[:,:,:,idx], axis=(1, 2))
             X[:,:,:,idx] = X[:,:,:,idx] / d[:, np.newaxis, np.newaxis]
 
-          X[np.isnan(X)] = 0
-          return X
+        X[np.isnan(X)] = 0
+        return X
 
       X_train = multiplier*standarize(X_train, color)
       X_val = multiplier*standarize(X_val, color)
