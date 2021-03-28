@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --array=165-999
+#SBATCH --array=741-950
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --exclude=node026
 #SBATCH --job-name=robustness
-#SBATCH --mem=4GB
-#SBATCH -t 0:10:00
+#SBATCH --mem=8GB
+#SBATCH -t 0:30:00
 #SBATCH -D ./log/
 #SBATCH --partition=use-everything
 #SBATCH --gres=gpu:1
@@ -22,7 +22,7 @@ singularity exec -B /om:/om -B /om2:/om2 -B /scratch/user/xboix:/vast --nv /om/u
 python3 main.py \
 --experiment_id=$((0+${SLURM_ARRAY_TASK_ID})) \
 --filesystem=om \
---experiment_name=onelayer \
+--experiment_name=cifar \
 --run=test \
 --gpu_id=0
 

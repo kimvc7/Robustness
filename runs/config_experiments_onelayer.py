@@ -11,15 +11,20 @@ def config_experiments(results_dir, create_json=True):
     experiment_list = []
     for dataset in [67] + [0, 66] + list(range(20, 66)): #165 experiments per datasets
 
+        restart = False
         if dataset == 67: #CIFAR
             standarize = True
             multiplier = 255.0
+
         elif dataset == 0: #MNIST
             standarize = True
-            multiplier = 128.0 * 255.0
+            multiplier = 255.0
+            restart = True
+
         elif dataset == 66: #fashion MNIST
             standarize = True
             multiplier = 255.0
+
         else: #UCI
             standarize = False
             multiplier = 255.0
@@ -29,6 +34,7 @@ def config_experiments(results_dir, create_json=True):
                 config = base_config.copy()
                 config["data_set"] = dataset
                 config["model_name"] = str(id)
+                config["restart"] = restart
                 config["backbone"] = net
                 config["training_batch_size"] = 256
                 config["initial_learning_rate"] = lr
@@ -53,6 +59,7 @@ def config_experiments(results_dir, create_json=True):
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
+                    config["restart"] = restart
                     config["training_batch_size"] = 256
                     config["backbone"] = net
                     config["initial_learning_rate"] = lr
@@ -79,12 +86,13 @@ def config_experiments(results_dir, create_json=True):
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["training_batch_size"] = 256
+                    config["restart"] = restart
                     config["backbone"] = net
                     config["initial_learning_rate"] = lr
                     config["epsilon"] = epsilon
                     config["max_num_training_steps"] = 5000
                     config["robust_training"] = True
-                    config["l1_robustness"] = True
+                    config["type_robust"] = "l1"
                     config["pgd_training"] = False
                     config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
                     config["bound_lower"] = -1e10
@@ -105,6 +113,7 @@ def config_experiments(results_dir, create_json=True):
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["training_batch_size"] = 256
+                    config["restart"] = restart
                     config["backbone"] = net
                     config["initial_learning_rate"] = lr
                     config["max_num_training_steps"] = 5000
@@ -132,12 +141,12 @@ def config_experiments(results_dir, create_json=True):
                     config["model_name"] = str(id)
                     config["training_batch_size"] = 256
                     config["backbone"] = net
+                    config["restart"] = restart
                     config["initial_learning_rate"] = lr
                     config["epsilon"] = epsilon
                     config["max_num_training_steps"] = 5000
                     config["robust_training"] = True
-                    config["l1_robustness"] = True
-                    config["certificate"] = True
+                    config["type_robust"] = "certificate"
                     config["pgd_training"] = False
                     config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
                     config["bound_lower"] = -1e10
@@ -161,12 +170,13 @@ def config_experiments(results_dir, create_json=True):
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["training_batch_size"] = 256
+                    config["restart"] = restart
                     config["backbone"] = net
                     config["initial_learning_rate"] = lr
                     config["epsilon"] = epsilon
                     config["max_num_training_steps"] = 5000
                     config["robust_training"] = True
-                    config["l1_robustness"] = True
+                    config["type_robust"] = "l1"
                     config["pgd_training"] = False
                     config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
                     config["bound_lower"] = -1e10
@@ -188,13 +198,13 @@ def config_experiments(results_dir, create_json=True):
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["training_batch_size"] = 256
+                    config["restart"] = restart
                     config["backbone"] = net
                     config["initial_learning_rate"] = lr
                     config["epsilon"] = epsilon
                     config["max_num_training_steps"] = 5000
                     config["robust_training"] = True
-                    config["l1_robustness"] = True
-                    config["certificate"] = True
+                    config["type_robust"] = "certificate"
                     config["pgd_training"] = False
                     config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
                     config["bound_lower"] = -1e10
@@ -226,3 +236,9 @@ def check_uncompleted(results_dir, experiments_list):
             print(experiment["model_name"], end = ',')
 
     print("\n Check test completed")
+
+    for experiment in experiments_list:
+        if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testing_bound.done'):
+            print(experiment["model_name"], end = ',')
+
+    print("\n Check bound completed")

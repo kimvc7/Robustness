@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --array=2900,3244,3984,4564,5416,6009,6822,7491
+#SBATCH --array=0-999
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --exclude=node026
 #SBATCH --job-name=robustness
-#SBATCH --mem=4GB
-#SBATCH -t 0:20:00
+#SBATCH --mem=8GB
+#SBATCH -t 0:30:00
 #SBATCH -D ./log/
 #SBATCH --partition=use-everything
 #SBATCH --gres=gpu:1
@@ -17,12 +17,15 @@ hostname
 echo $CUDA_VISIBLE_DEVICES
 echo $CUDA_DEVICE_ORDER
 
+
 singularity exec -B /om:/om -B /om2:/om2 -B /scratch/user/xboix:/vast --nv /om/user/xboix/singularity/xboix-tensorflow2.5.0.simg \
 python3 main.py \
 --experiment_id=$((0+${SLURM_ARRAY_TASK_ID})) \
 --filesystem=om \
 --experiment_name=onelayer \
---run=train \
+--run=test_bound \
 --gpu_id=0
+
+
 
 

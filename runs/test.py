@@ -27,7 +27,7 @@ def test(config):
         print("Not trained")
         return
 
-    if os.path.isfile(config["model_dir"] + '/results/testing.done'):
+    if os.path.isfile(config["model_dir"] + '/results/testing.done') and not config["restart"]:
         print("Already tested")
         return
 
@@ -42,6 +42,7 @@ def test(config):
     else:
         model.load_all(tf.train.latest_checkpoint(config['model_dir'] + '/checkpoints/'), load_optimizer=False)
 
+    model.set_mode('test')
     #Setting up attacks
     pre = dict(std=None, mean=None)  # RGB to BGR
     fmodel: Model = TensorFlowModel(model, bounds=(config["bound_lower"], config["bound_upper"]), preprocessing=pre)

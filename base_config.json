@@ -13,7 +13,6 @@
   "random_seed": 4557077,
 
   "robust_training": true,
-  "clipping_training": false,
   "max_num_training_steps": 10000,
   "num_output_steps": 500,
   "training_size": 50000,
@@ -25,8 +24,7 @@
   "eval_attack_during_training": false,
   "epsilon": 0.1,
   "increasing_epsilon": false,
-  "l1_robustness": false,
-  "certificate": false,
+  "type_robust": "linf",
 
   "bound_upper": 255,
   "bound_lower": 0,

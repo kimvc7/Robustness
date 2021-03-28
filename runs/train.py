@@ -28,7 +28,7 @@ def train(config):
     backbone_name = config['backbone']
     robust_training = config['robust_training']
 
-    if os.path.isfile(config["model_dir"] + '/results/training.done'):
+    if os.path.isfile(config["model_dir"] + '/results/training.done') and not config["restart"]:
         print("Already trained")
         return
 
@@ -133,9 +133,8 @@ def train(config):
 
         model.set_mode('train')
         model.train_step(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
-                         epsilon=epsilon, clipping=config['clipping_training'],
-                         robust=robust_training, l1=config['l1_robustness'],
-                         certificate=config['certificate'])
+                         epsilon=epsilon,
+                         robust=robust_training, type_robust=config['type_robust'])
         end = timer()
         training_time += end - start
 
