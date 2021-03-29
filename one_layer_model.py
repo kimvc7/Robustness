@@ -21,6 +21,8 @@ class Model(object):
     self.eps_l1 = np.sqrt(num_features)*eps
     self.x_input = tf.placeholder(tf.float32, shape = [None, num_features])
     self.y_input = tf.placeholder(tf.int64, shape = [None])
+    batch_size = tf.shape(self.x_input)[0]
+    self.labels = tf.repeat( self.y_input , repeats = num_features, axis = 0)
 
 
     # Fully connected layers.
@@ -29,9 +31,13 @@ class Model(object):
     self.z1 = tf.matmul(self.x_input, self.W1) + self.b1
     self.h1 = tf.nn.relu(self.z1)
 
+
+    self.g_1_pos = tf.reshape(self.eps_l1*self.W1[None] + self.z1[:, None], [num_features* tf.shape(self.z1)[0], l1_size])
+    self.g_1_neg = tf.reshape(-self.eps_l1*self.W1[None] + self.z1[:, None], [num_features* tf.shape(self.z1)[0], l1_size])
+    filt = tf.repeat(tf.sign(self.h1), repeats = num_features*tf.ones(batch_size, tf.int32), axis = 0)
+
     self.W2 = self._weight_variable([l1_size, num_classes])
     self.b2 = self._bias_variable([num_classes])
-
     self.pre_softmax = tf.matmul(self.h1, self.W2) + self.b2
 
     #Prediction 
@@ -45,16 +51,16 @@ class Model(object):
     robust_acc = 0
 
     for k in range(num_classes):
-      mask = tf.equal(self.y_input, k)
-      z_k = tf.boolean_mask(self.z1, mask)
+      mask = tf.equal(self.labels, k)
+      h_1_pos = tf.boolean_mask(self.g_1_pos, mask)
+      h_1_neg = tf.boolean_mask(self.g_1_neg, mask)
+      filt_k = tf.boolean_mask(filt, mask)
+
       W2_k = self.W2 - tf.gather(self.W2, [k], axis=1)
-      h_1_pos = tf.reshape(self.eps_l1*self.W1[None] + z_k[:, None], [num_features* tf.shape(z_k)[0], l1_size])
-      h_1_neg = tf.reshape(-self.eps_l1*self.W1[None] + z_k[:, None], [num_features* tf.shape(z_k)[0], l1_size])
-      filt = tf.repeat(tf.nn.relu(tf.sign(z_k)), repeats = num_features*tf.ones(tf.shape(z_k)[0], tf.int32), axis = 0)
-      objectives_pos = tf.matmul(tf.nn.relu(h_1_pos), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_pos, filt), tf.nn.relu(-W2_k))
-      objectives_neg = tf.matmul(tf.nn.relu(h_1_neg), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_neg, filt), tf.nn.relu(-W2_k))
+      objectives_pos = tf.matmul(tf.nn.relu(h_1_pos), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_pos, filt_k), tf.nn.relu(-W2_k))
+      objectives_neg = tf.matmul(tf.nn.relu(h_1_neg), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_neg, filt_k), tf.nn.relu(-W2_k))
       objectives_max = tf.maximum(objectives_pos, objectives_neg)
-      objectives = tf.nn.max_pool(tf.reshape(objectives_max, [1, num_features* tf.shape(z_k)[0], num_classes, 1]), [1, num_features, 1, 1], [1, num_features, 1, 1], "SAME")
+      objectives = tf.nn.max_pool(tf.reshape(objectives_max, [1, tf.shape(objectives_max)[0], num_classes, 1]), [1, num_features, 1, 1], [1, num_features, 1, 1], "SAME")
       logits_diff = objectives + tf.reshape(self.b2  - self.b2[k], [1, 1, num_classes, 1])
       robust_acc +=  tf.reduce_sum(tf.cast(tf.reduce_all(tf.less_equal(logits_diff, tf.constant([0.0])), axis = 2), tf.float32))
       robust_objective +=  tf.reduce_sum( tf.reduce_logsumexp(objectives + tf.reshape(self.b2  - self.b2[k], [1, 1, num_classes, 1]), axis = 2))
@@ -78,7 +84,7 @@ class Model(object):
     for i in range(num_classes):
       grad = tf.gradients(self.nom_exponent[i], self.x_input)
       exponent = self.eps_l1*tf.reduce_max(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
-      exponent1 = self.eps_l1*tf.reduce_sum(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
+      exponent1 = eps*tf.reduce_sum(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
       sum_exps+=tf.exp(exponent)
       sum_exps1+=tf.exp(exponent1)
     self.robust_l1_xent_approx = tf.reduce_mean(tf.log(sum_exps))  #l1 robust approximation using our gradient method (no theoretical guarantees)

@@ -16,7 +16,7 @@ import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 
 #from CNN_model import Model
-from one_layer_model import Model
+from three_layer_model import Model
 
 from pgd_attack import LinfPGDAttack
 
@@ -80,7 +80,7 @@ test_dict = {model.x_input: data.test.images,
                 model.y_input: data.test.labels.reshape(-1)}
 
 # Setting up the optimizer
-optimizer = tf.train.AdamOptimizer(1e-4).minimize(model.robust_l1_xent_approx, global_step=global_step)
+optimizer = tf.train.AdamOptimizer(1e-3).minimize(model.robust_l1_xent_approx, global_step=global_step)
 
 
 model_dir = config['model_dir']
@@ -100,6 +100,7 @@ with tf.Session() as sess:
     
   # Main training loop
   best_val_acc, test_acc, num_iters = 0, 0, 0
+  #x_batch, y_batch = data.train.next_batch(batch_size)
 
   for ii in range(max_num_training_steps):
     x_batch, y_batch = data.train.next_batch(batch_size)
@@ -122,13 +123,11 @@ with tf.Session() as sess:
       robust_l1_xent = sess.run(model.robust_l1_xent, feed_dict=nat_dict)
       test_robust_l1_xent_approx = sess.run(model.robust_l1_xent_approx, feed_dict=test_dict)
 
-
-
       print('Step {}:    ({})'.format(ii, datetime.now()))
       print('    batch nat accuracy {:.4}'.format(nat_acc * 100))
       print('    batch adv accuracy {:.4}'.format(adv_acc * 100))
       print('    testing nat accuracy {:.4}'.format(test_acc * 100))
-      print('    testing robust acc', 100*sess.run(model.robust_acc, feed_dict=test_dict))
+      #print('    testing robust acc', 100*sess.run(model.robust_acc, feed_dict=test_dict))
       print('    Batch Nat Xent {:.4}'.format(nat_xent))
       print('    Batch linf Adv Xent {:.4}'.format(adv_xent))
       print('    Batch Robust l1 Xent {:.4}'.format(robust_l1_xent))
