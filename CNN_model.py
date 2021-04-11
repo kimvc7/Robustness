@@ -20,10 +20,17 @@ num_classes = 10
 
 class Model(object):
   def __init__(self, num_features):
+    self.eps_l1 = np.sqrt(num_features)*eps
     self.x_input = tf.placeholder(tf.float32, shape = [None, num_features])
+    batch_size = tf.shape(self.x_input)[0]
+    self.eps_input1 =  tf.reshape(self.eps_l1*tf.eye(num_features)[None] + self.x_input[:,None], [num_features* batch_size , num_features])
+    self.eps_input2 =  tf.reshape(-self.eps_l1*tf.eye(num_features)[None] + self.x_input[:,None], [num_features* batch_size , num_features])
     self.y_input = tf.placeholder(tf.int64, shape = [None])
     self.y_input1 = tf.cast(self.y_input, tf.int32)
     self.x_image = tf.reshape(self.x_input, [-1, 28, 28, 1])
+    self.eps_image1 = tf.reshape(self.eps_input1, [-1, 28, 28, 1])
+    self.eps_image2 = tf.reshape(self.eps_input2, [-1, 28, 28, 1])
+    self.labels = tf.repeat( self.y_input , repeats = num_features, axis = 0)
 
     # first convolutional layer
     self.W_conv1 = self._weight_variable([5,5,1,32])
@@ -31,14 +38,23 @@ class Model(object):
 
     h1 = self._conv2d(self.x_image, self.W_conv1) + self.b_conv1
     h_conv1 = tf.nn.relu(h1)
-    h_pool1 = self._max_pool_2x2(h_conv1)
+
+    self.g_1_pos = self._conv2d(self.eps_image1, self.W_conv1) + self.b_conv1
+    self.g_1_neg = self._conv2d(self.eps_image2, self.W_conv1) + self.b_conv1
+    filt1 = tf.repeat(tf.sign(h_conv1), repeats = num_features*tf.ones(batch_size, tf.int32), axis = 0)
     
     # second convolutional layer
     self.W_conv2 = self._weight_variable([5,5,32,64])
     self.b_conv2 = self._bias_variable([64])
 
-    h_conv2 = tf.nn.relu(self._conv2d(h_pool1, self.W_conv2) + self.b_conv2)
-    h_pool2 = self._max_pool_2x2(h_conv2)
+    h_conv2 = tf.nn.relu(self._conv2d(h_conv1, self.W_conv2) + self.b_conv2)
+    h_pool2 = self._avg_pool_4x4(h_conv2)
+
+    self.g_2_pos1 = self._conv2d(tf.nn.relu(self.g_1_pos), tf.nn.relu(self.W_conv2)) - self._conv2d(tf.multiply(self.g_1_pos, filt1), tf.nn.relu(-self.W_conv2))
+    self.g_2_pos2 = self._conv2d(tf.nn.relu(self.g_1_pos), tf.nn.relu(-self.W_conv2)) - self._conv2d(tf.multiply(self.g_1_pos, filt1), tf.nn.relu(self.W_conv2))
+    self.g_2_neg1 = self._conv2d(tf.nn.relu(self.g_1_neg), tf.nn.relu(self.W_conv2)) - self._conv2d(tf.multiply(self.g_1_neg, filt1), tf.nn.relu(-self.W_conv2))
+    self.g_2_neg2 = self._conv2d(tf.nn.relu(self.g_1_neg), tf.nn.relu(-self.W_conv2)) - self._conv2d(tf.multiply(self.g_1_neg, filt1), tf.nn.relu(self.W_conv2))
+    filt2 = tf.repeat(tf.sign(h_conv2), repeats = num_features*tf.ones(batch_size, tf.int32), axis = 0)
 
 
     # first fully connected layer
@@ -48,6 +64,18 @@ class Model(object):
     h_pool2_flat = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, self.W_fc1) + self.b_fc1)
 
+    g_2_pos1_flat =  tf.reshape(self._avg_pool_4x4(tf.nn.relu(self.g_2_pos1 + self.b_conv2)), [-1, 7 * 7 * 64])
+    g_2_neg1_flat =  tf.reshape(self._avg_pool_4x4(tf.nn.relu(self.g_2_neg1 + self.b_conv2)), [-1, 7 * 7 * 64])
+
+    g_2_pos2_flat = tf.reshape(self._avg_pool_4x4(tf.multiply(-self.g_2_pos2 + self.b_conv2, filt2)), [-1, 7 * 7 * 64])
+    g_2_neg2_flat = tf.reshape(self._avg_pool_4x4(tf.multiply(-self.g_2_neg2 + self.b_conv2, filt2)), [-1, 7 * 7 * 64])
+
+
+    self.g_3_pos1 = tf.matmul(g_2_pos1_flat, tf.nn.relu(self.W_fc1)) - tf.matmul(g_2_pos2_flat, tf.nn.relu(-self.W_fc1))
+    self.g_3_pos2 = tf.matmul(g_2_pos1_flat, tf.nn.relu(-self.W_fc1)) - tf.matmul(g_2_pos2_flat, tf.nn.relu(self.W_fc1))
+    self.g_3_neg1 = tf.matmul(g_2_neg1_flat, tf.nn.relu(self.W_fc1)) - tf.matmul(g_2_neg2_flat, tf.nn.relu(-self.W_fc1))
+    self.g_3_neg2 = tf.matmul(g_2_neg1_flat, tf.nn.relu(-self.W_fc1)) - tf.matmul(g_2_neg2_flat, tf.nn.relu(self.W_fc1))
+    filt3 = tf.repeat(tf.sign(h_fc1), repeats = num_features*tf.ones(batch_size, tf.int32), axis = 0)
 
     # output layer
     self.W_fc2 = self._weight_variable([1024,10])
@@ -64,6 +92,31 @@ class Model(object):
     self.num_correct = tf.reduce_sum(tf.cast(correct_prediction, tf.int64))
     self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+    
+    robust_objective = 0
+    robust_acc = 0
+
+    for k in range(num_classes):
+      mask = tf.equal(self.labels, k)
+      g_3k_pos1 = tf.boolean_mask(self.g_3_pos1, mask)
+      g_3k_pos2 = tf.boolean_mask(self.g_3_pos2, mask)
+      g_3k_neg1 = tf.boolean_mask(self.g_3_neg1, mask)
+      g_3k_neg2 = tf.boolean_mask(self.g_3_neg2, mask)
+      filt3_k = tf.boolean_mask(filt3, mask)
+      W_fc2_k = self.W_fc2 - tf.gather(self.W_fc2, [k], axis=1)
+
+      g_4k_pos = tf.matmul(tf.nn.relu(g_3k_pos1 + self.b_fc1), tf.nn.relu(W_fc2_k)) - tf.matmul(tf.multiply(-g_3k_pos2 + self.b_fc1, filt3_k), tf.nn.relu(-W_fc2_k))
+      g_4k_neg = tf.matmul(tf.nn.relu(g_3k_neg1 + self.b_fc1), tf.nn.relu(W_fc2_k)) - tf.matmul(tf.multiply(-g_3k_neg2 + self.b_fc1, filt3_k), tf.nn.relu(-W_fc2_k))
+      g_4k_max = tf.maximum(g_4k_pos, g_4k_neg)
+      g_4k = tf.nn.max_pool(tf.reshape(g_4k_max, [1, tf.shape(g_4k_max)[0], num_classes, 1]), [1, num_features, 1, 1], [1, num_features, 1, 1], "SAME") + tf.reshape(self.b_fc2  - self.b_fc2[k], [1, 1, num_classes, 1])
+      
+
+      robust_acc +=  tf.reduce_sum(tf.cast(tf.reduce_all(tf.less_equal(g_4k, tf.constant([0.0])), axis = 2), tf.float32))
+      robust_objective +=  tf.reduce_sum( tf.reduce_logsumexp(g_4k, axis = 2))
+
+    self.robust_acc = robust_acc/tf.cast(tf.shape(self.y_input)[0], tf.float32)
+    self.robust_l1_xent = robust_objective/tf.cast(tf.shape(self.y_input)[0], tf.float32)
+
 
     #Compute linear approximation for robust cross-entropy.
     data_range = tf.range(tf.shape(self.y_input)[0])
@@ -71,12 +124,16 @@ class Model(object):
     pre_softmax_t = tf.transpose(self.pre_softmax)
     self.nom_exponent = pre_softmax_t -  tf.gather_nd(pre_softmax_t, indices)
 
-    sum_exps=0
+    sum_exps = 0
+    sum_exps1 = 0
     for i in range(num_classes):
       grad = tf.gradients(self.nom_exponent[i], self.x_input)
-      exponent = eps*tf.reduce_sum(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
+      exponent = self.eps_l1*tf.reduce_max(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
+      exponent1 = eps*tf.reduce_sum(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
       sum_exps+=tf.exp(exponent)
-    self.robust_xent = tf.reduce_mean(tf.log(sum_exps))
+      sum_exps1+=tf.exp(exponent1)
+    self.robust_l1_xent_approx = tf.reduce_mean(tf.log(sum_exps))  #l1 robust approximation using our gradient method (no theoretical guarantees)
+    self.robust_linf_xent_approx = tf.reduce_mean(tf.log(sum_exps1))#linf robust approximation using our gradient method (no theoretical guarantees)
 
   @staticmethod
   def _weight_variable(shape):
@@ -97,4 +154,11 @@ class Model(object):
       return tf.nn.max_pool(x,
                             ksize = [1,2,2,1],
                             strides=[1,2,2,1],
+                            padding='SAME')
+
+  @staticmethod
+  def _avg_pool_4x4( x):
+      return tf.nn.max_pool(x,
+                            ksize = [1,4,4,1],
+                            strides=[1,4,4,1],
                             padding='SAME')

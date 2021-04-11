@@ -15,8 +15,8 @@ import subprocess
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 
-#from CNN_model import Model
-from three_layer_model import Model
+from CNN_model import Model
+#from three_layer_model import Model
 
 from pgd_attack import LinfPGDAttack
 
