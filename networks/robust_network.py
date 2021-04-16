@@ -13,3 +13,6 @@ def get_network(name_net, config, num_features):
     elif name_net == 'OneLayer' or name_net == "OneLayer+pgd":
         from networks.OneLayer import robustOneLayer as OneLayer
         return OneLayer(config, num_features)
+    elif name_net == 'ThreeLayer' or name_net == "ThreeLayer+pgd":
+        from networks.OneLayer import robustOneLayer as ThreeLayer
+        return ThreeLayer(config, num_features)

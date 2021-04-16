@@ -2,14 +2,14 @@
 #SBATCH --array=0-999
 #SBATCH -n 1
 #SBATCH -c 2
-#SBATCH --exclude=node026
+#SBATCH --exclude=node026,node053
 #SBATCH --job-name=robustness
 #SBATCH --mem=8GB
 #SBATCH -t 0:30:00
 #SBATCH -D ./log/
 #SBATCH --partition=use-everything
 #SBATCH --gres=gpu:1
-#SBATCH --constraint=any-gpu
+#SBATCH --constraint=8GB
 
 cd /om/user/xboix/src/adversarial/Robustness/
 

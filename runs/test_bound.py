@@ -21,7 +21,6 @@ def test_bound(config):
     seed = config['random_seed']
     tf.random.set_seed(seed)
     batch_size = config['training_batch_size']
-    data_set = config['data_set']
     backbone_name = config['backbone']
 
     if not os.path.isfile(config["model_dir"] + '/results/training.done'):
@@ -63,7 +62,7 @@ def test_bound(config):
 
     tf.executing_eagerly()
     num_iter = 10
-    for dataset in ["test"]:
+    for dataset in ["val", "test"]:
 
         for iter in range(num_iter):
 
@@ -73,9 +72,11 @@ def test_bound(config):
                 x_batch, y_batch = data.test.next_batch(batch_size)
 
             tmp_acc = []
+
             for epsilon in epsilons_inf:
+
                 model.evaluate_bound(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
-                                                 epsilon=epsilon)
+                                                 epsilon=epsilon*model.num_features)
                 tmp_acc += [model.acc_bound]
 
             if iter == 0:

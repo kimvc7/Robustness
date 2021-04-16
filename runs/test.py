@@ -20,7 +20,6 @@ def test(config):
     seed = config['random_seed']
     tf.random.set_seed(seed)
     batch_size = config['training_batch_size']
-    data_set = config['data_set']
     backbone_name = config['backbone']
 
     if not os.path.isfile(config["model_dir"] + '/results/training.done'):

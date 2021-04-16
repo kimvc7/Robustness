@@ -28,7 +28,7 @@ def config_experiments(results_dir, create_json=True):
             standarize = False
             multiplier = 255.0
 
-        for net in ["OneLayer"]: #Vanilla
+        for net in ["ThreeLayer"]: #Vanilla
             for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
                 config = base_config.copy()
                 config["data_set"] = dataset
@@ -52,9 +52,9 @@ def config_experiments(results_dir, create_json=True):
                 experiment_list.append(config.copy())
                 id += 1
 
-        for net in ["OneLayer"]: #Linf approx
+        for net in ["ThreeLayer"]: #Linf approx
             for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1]:
+                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
@@ -78,9 +78,9 @@ def config_experiments(results_dir, create_json=True):
                     experiment_list.append(config.copy())
                     id += 1
 
-        for net in ["OneLayer"]: #L1 approx
+        for net in ["ThreeLayer"]: #L1 approx
             for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1, 10]:
+                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
@@ -105,9 +105,9 @@ def config_experiments(results_dir, create_json=True):
                     experiment_list.append(config.copy())
                     id += 1
 
-        for net in ["OneLayer+pgd"]: #Madry
+        for net in ["ThreeLayer+pgd"]: #Madry
             for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon_pgd_training in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1]:
+                for epsilon_pgd_training in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
@@ -132,9 +132,9 @@ def config_experiments(results_dir, create_json=True):
                     experiment_list.append(config.copy())
                     id += 1
 
-        for net in ["OneLayer"]: #Certificate
+        for net in ["ThreeLayer"]: #Certificate
             for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1, 10]:
+                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
@@ -158,65 +158,6 @@ def config_experiments(results_dir, create_json=True):
                             json.dump(config, json_file)
                     experiment_list.append(config.copy())
                     id += 1
-
-
-
-        #additional
-        for net in ["OneLayer"]: #L1 approx
-            for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon in [1e2, 1e3, 1e4]:
-                    config = base_config.copy()
-                    config["data_set"] = dataset
-                    config["model_name"] = str(id)
-                    config["training_batch_size"] = 256
-                    config["restart"] = restart
-                    config["backbone"] = net
-                    config["initial_learning_rate"] = lr
-                    config["epsilon"] = epsilon
-                    config["max_num_training_steps"] = 5000
-                    config["robust_training"] = True
-                    config["type_robust"] = "l1"
-                    config["pgd_training"] = False
-                    config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
-                    config["bound_lower"] = -1e10
-                    config["bound_upper"] = 1e10
-                    config["standarize"] = standarize
-                    config["standarize_multiplier"] = multiplier
-
-                    if create_json:
-                        with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
-                            json.dump(config, json_file)
-                    experiment_list.append(config.copy())
-                    id += 1
-
-
-        for net in ["OneLayer"]: #Certificate
-            for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon in [1e2, 1e3, 1e4]:
-                    config = base_config.copy()
-                    config["data_set"] = dataset
-                    config["model_name"] = str(id)
-                    config["training_batch_size"] = 256
-                    config["restart"] = restart
-                    config["backbone"] = net
-                    config["initial_learning_rate"] = lr
-                    config["epsilon"] = epsilon
-                    config["max_num_training_steps"] = 5000
-                    config["robust_training"] = True
-                    config["type_robust"] = "certificate"
-                    config["pgd_training"] = False
-                    config["batch_decrease_learning_rate"] = 1e10  # do not decrease the learning rate
-                    config["bound_lower"] = -1e10
-                    config["bound_upper"] = 1e10
-                    config["standarize"] = standarize
-                    config["standarize_multiplier"] = multiplier
-
-                    if create_json:
-                        with open(results_dir + 'configs/' + str(id)+'.json', 'w') as json_file:
-                            json.dump(config, json_file)
-                    experiment_list.append(config.copy())
-                    id += 1
-
 
     print(str(id) + " config files created")
     return experiment_list

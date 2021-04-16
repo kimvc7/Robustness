@@ -67,6 +67,8 @@ else:
         import runs.config_experiments_fashion as run_exp
     elif args.experiment_name == 'onelayer':
         import runs.config_experiments_onelayer as run_exp
+    elif args.experiment_name == 'threelayer':
+        import runs.config_experiments_threelayer as run_exp
 
     if args.config == 'generate':
         run_exp.config_experiments(full_results_dir)

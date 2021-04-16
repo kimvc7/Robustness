@@ -23,7 +23,6 @@ def train(config):
     batch_size = config['training_batch_size']
     max_num_training_steps = config['max_num_training_steps']
     num_output_steps = config['num_output_steps']
-    data_set = config['data_set']
     eval_attack_during_training = config['eval_attack_during_training']
     backbone_name = config['backbone']
     robust_training = config['robust_training']

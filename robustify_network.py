@@ -72,7 +72,7 @@ class RobustifyNetwork(tf.keras.Model):
               negative_terms = tf.math.multiply(self.m, tf.nn.relu(-grad[0]))
               exponent = tf.reduce_sum(positive_terms - negative_terms, axis=1) + self.nom_exponent[i]
             elif type_robust=='l1':
-              exponent = np.sqrt(self.num_features)* tf.reduce_max(tf.abs(grad), axis=1) + self.nom_exponent[i]
+              exponent = np.sqrt(self.num_features) * tf.reduce_max(tf.abs(grad), axis=1) + self.nom_exponent[i]
             elif type_robust=='l1+inf':
               exponent = np.sqrt(self.num_features)*epsilon * tf.reduce_max(tf.abs(grad), axis=1) + \
                          epsilon * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
@@ -92,29 +92,9 @@ class RobustifyNetwork(tf.keras.Model):
 
           self.feedforward_pass(self.x_input)
 
-          robust_objective = 0
-          robust_acc = 0
-
-          for k in range(self.num_classes):
-            mask = tf.equal(self.y_input, k)
-            z_k = tf.boolean_mask(self.z1, mask)
-            W2_k = self.W2 - tf.gather(self.W2, [k], axis=1)
-            h_1_pos = tf.reshape(epsilon*self.W1[None] + z_k[:, None], [self.num_features * tf.shape(z_k)[0], self.l1_size])
-            h_1_neg = tf.reshape(-epsilon*self.W1[None] + z_k[:, None], [self.num_features * tf.shape(z_k)[0], self.l1_size])
-            filt = tf.repeat(tf.nn.relu(tf.sign(z_k)), repeats = self.num_features * tf.ones(tf.shape(z_k)[0], tf.int32), axis = 0)
-            objectives_pos = tf.matmul(tf.nn.relu(h_1_pos), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_pos, filt), tf.nn.relu(-W2_k))
-            objectives_neg = tf.matmul(tf.nn.relu(h_1_neg), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_neg, filt), tf.nn.relu(-W2_k))
-            objectives_max = tf.maximum(objectives_pos, objectives_neg)
-            objectives = tf.nn.max_pool(tf.reshape(objectives_max, [1, self.num_features * tf.shape(z_k)[0], self.num_classes, 1]), [1, self.num_features, 1, 1], [1, self.num_features, 1, 1], "SAME")
-            logits_diff = objectives + tf.reshape(self.b2 - self.b2[k], [1, 1, self.num_classes, 1])
-            robust_acc += tf.reduce_sum(tf.cast(tf.reduce_all(tf.less_equal(logits_diff, tf.constant([0.0])), axis = 2), tf.float32))
-            robust_objective += tf.reduce_sum(tf.reduce_logsumexp(objectives + tf.reshape(self.b2 - self.b2[k], [1, 1, self.num_classes, 1]), axis = 2))
-
-          if evaluate:
-            self.acc_bound = (robust_acc/tf.cast(tf.shape(self.y_input)[0], tf.float32)).numpy()
-
-          self.loss = robust_objective/tf.cast(tf.shape(self.y_input)[0], tf.float32)
-
+          #L1 certificate -- epsilon is converted
+          self.loss, self.acc_bound = self.certificate_loss(np.sqrt(self.num_features) * epsilon)
+          self.acc_bound = (self.acc_bound).numpy()
 
     if not evaluate:
       self.optimizer.apply_gradients(zip(self.tape.gradient(self.loss, self.train_variables), self.train_variables))
