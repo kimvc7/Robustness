@@ -28,8 +28,10 @@ def config_experiments(results_dir, create_json=True):
             standarize = False
             multiplier = 255.0
 
+        #315 experiments per dataset!
+
         for net in ["ThreeLayer"]: #Vanilla
-            for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
+            for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 config = base_config.copy()
                 config["data_set"] = dataset
                 config["model_name"] = str(id)
@@ -53,8 +55,8 @@ def config_experiments(results_dir, create_json=True):
                 id += 1
 
         for net in ["ThreeLayer"]: #Linf approx
-            for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1, 3, 5, 10]:
+            for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
+                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
@@ -79,8 +81,8 @@ def config_experiments(results_dir, create_json=True):
                     id += 1
 
         for net in ["ThreeLayer"]: #L1 approx
-            for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1, 3, 5, 10]:
+            for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
+                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
@@ -106,8 +108,8 @@ def config_experiments(results_dir, create_json=True):
                     id += 1
 
         for net in ["ThreeLayer+pgd"]: #Madry
-            for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon_pgd_training in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1, 3, 5, 10]:
+            for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
+                for epsilon_pgd_training in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
@@ -133,8 +135,8 @@ def config_experiments(results_dir, create_json=True):
                     id += 1
 
         for net in ["ThreeLayer"]: #Certificate
-            for lr in [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]:
-                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 1, 3, 5, 10]:
+            for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
+                for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)

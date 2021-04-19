@@ -17,9 +17,9 @@ class robustCNN(robustify_network.RobustifyNetwork):
     def __init__(self, config, num_features):
         super().__init__(config['num_classes'], config['epsilon'])
 
-        initial_learning_rate = config['initial_learning_rate']
+        initial_learning_rate = float(config['initial_learning_rate'])
         training_batch_size = config['training_batch_size']
-        batch_decrease_learning_rate = config['batch_decrease_learning_rate']
+        batch_decrease_learning_rate = float(config['batch_decrease_learning_rate'])
 
         self.num_features = num_features
 

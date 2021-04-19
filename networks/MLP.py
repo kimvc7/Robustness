@@ -13,10 +13,10 @@ class robustMLP(robustify_network.RobustifyNetwork):
 
     l1_size = config['l1_size']
     l2_size = config['l2_size']
-    initial_learning_rate = config['initial_learning_rate']
+    initial_learning_rate = float(config['initial_learning_rate'])
     training_batch_size = config['training_batch_size']
     num_classes = config['num_classes']
-    batch_decrease_learning_rate = config['batch_decrease_learning_rate']
+    batch_decrease_learning_rate = float(config['batch_decrease_learning_rate'])
 
     self.mode = 'train'
 
