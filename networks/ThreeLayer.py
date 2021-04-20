@@ -68,7 +68,10 @@ class robustThreeLayer(robustify_network.RobustifyNetwork):
     def set_mode(self, mode='train'):
         self.mode = mode
 
-    def certificate_loss(self, epsilon):
+    def certificate_loss(self, epsilon, labels):
+
+        labels_r = tf.repeat(labels, repeats = self.num_features, axis = 0)
+
         self.g_1_pos = tf.reshape(epsilon*self.W1[None] + self.z1[:, None],
                                   [self.num_features*self.batch_size, self.l1_size])
         self.g_1_neg = tf.reshape(-epsilon*self.W1[None] + self.z1[:, None],
@@ -100,7 +103,7 @@ class robustThreeLayer(robustify_network.RobustifyNetwork):
         robust_acc = 0
 
         for k in range(self.num_classes):
-            mask = tf.equal(self.labels, k)
+            mask = tf.equal(labels_r, k)
             g_3k_pos1 = tf.boolean_mask(self.g_3_pos1, mask)
             g_3k_pos2 = tf.boolean_mask(self.g_3_pos2, mask)
             g_3k_neg1 = tf.boolean_mask(self.g_3_neg1, mask)
@@ -111,13 +114,14 @@ class robustThreeLayer(robustify_network.RobustifyNetwork):
             g_4k_pos = tf.matmul(tf.nn.relu(g_3k_pos1 + self.b3), tf.nn.relu(W4_k)) - tf.matmul(tf.multiply(-g_3k_pos2 + self.b3, filt3_k), tf.nn.relu(-W4_k))
             g_4k_neg = tf.matmul(tf.nn.relu(g_3k_neg1 + self.b3), tf.nn.relu(W4_k)) - tf.matmul(tf.multiply(-g_3k_neg2 + self.b3, filt3_k), tf.nn.relu(-W4_k))
             g_4k_max = tf.maximum(g_4k_pos, g_4k_neg)
-            g_4k = tf.nn.max_pool(tf.reshape(g_4k_max, [1, tf.shape(g_4k_max)[0], self.num_classes, 1]), [1, self.num_features, 1, 1], [1, self.num_features, 1, 1], "SAME") + tf.reshape(self.b4  - self.b4[k], [1, 1, num_classes, 1])
+            g_4k = tf.nn.max_pool(tf.reshape(g_4k_max, [1, tf.shape(g_4k_max)[0], self.num_classes, 1]), [1, self.num_features, 1, 1], [1, self.num_features, 1, 1], "SAME") + \
+                   tf.reshape(self.b4  - self.b4[k], [1, 1, self.num_classes, 1])
 
             robust_acc +=  tf.reduce_sum(tf.cast(tf.reduce_all(tf.less_equal(g_4k, tf.constant([0.0])), axis = 2), tf.float32))
             robust_objective += tf.reduce_sum(tf.reduce_logsumexp(g_4k, axis = 2))
 
-        self.acc_bound = robust_acc/tf.cast(tf.shape(self.y_input)[0], tf.float32)
-        self.loss = robust_objective/tf.cast(tf.shape(self.y_input)[0], tf.float32)
+        self.acc_bound = robust_acc/tf.cast(tf.shape(labels)[0], tf.float32)
+        self.loss = robust_objective/tf.cast(tf.shape(labels)[0], tf.float32)
         return self.loss, self.acc_bound
 
     @staticmethod

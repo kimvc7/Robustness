@@ -1,14 +1,14 @@
 #!/bin/bash
-#SBATCH --array=0-999
+#SBATCH --array=568,574,575,576,577,578,580,583,585,586,588,589,591,593,599,603,605,606,608,612,615,618,619,620,623,626,868,869,875,879,896,926,935
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --job-name=robustness
 #SBATCH --mem=8GB
 #SBATCH -t 4:00:00
 #SBATCH -D ./log/
-#SBATCH --partition=use-everything
+#SBATCH --partition=normal
 #SBATCH --gres=gpu:1
-#SBATCH --constraint=any-gpu
+#SBATCH --constraint=high-capacity
 
 cd /om2/user/xboix/src/Robustness/
 

@@ -167,19 +167,19 @@ def config_experiments(results_dir, create_json=True):
 
 def check_uncompleted(results_dir, experiments_list):
 
-    for experiment in experiments_list:
+    for experiment in experiments_list[:1000]:
         if not os.path.isfile(results_dir + experiment["model_name"] + '/results/training.done'):
             print(experiment["model_name"], end = ',')
 
     print("\n Check train completed")
 
-    for experiment in experiments_list:
+    for experiment in experiments_list[:1000]:
         if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testing.done'):
             print(experiment["model_name"], end = ',')
 
     print("\n Check test completed")
 
-    for experiment in experiments_list:
+    for experiment in experiments_list[:1000]:
         if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testing_bound.done'):
             print(experiment["model_name"], end = ',')
 

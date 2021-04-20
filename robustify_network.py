@@ -76,16 +76,17 @@ class RobustifyNetwork(tf.keras.Model):
                     sum_exps = 0
                     for i in range(self.num_classes):
                         grad = self.second_tape.gradient(self.nom_exponent[i], self.x_input)
-                        if type_robust == 'clipping':
+                        if type_robust == 'clipping': #linf
                             positive_terms = tf.math.multiply(self.M, tf.nn.relu(grad[0]))
                             negative_terms = tf.math.multiply(self.m, tf.nn.relu(-grad[0]))
                             exponent = tf.reduce_sum(positive_terms - negative_terms, axis=1) + self.nom_exponent[i]
                         elif type_robust == 'l1':
-                            exponent = np.sqrt(self.num_features) * tf.reduce_max(tf.abs(grad), axis=1) + self.nom_exponent[i]
+                            exponent = np.sqrt(self.num_features) * epsilon * tf.reduce_max(tf.abs(grad), axis=1) + \
+                                       self.nom_exponent[i]
                         elif type_robust == 'l1+inf':
-                            exponent = np.sqrt(self.num_features)*epsilon * tf.reduce_max(tf.abs(grad), axis=1) + \
+                            exponent = np.sqrt(self.num_features) * epsilon * tf.reduce_max(tf.abs(grad), axis=1) + \
                                      epsilon * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
-                        else:
+                        else: #linf
                             exponent = epsilon * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
                         sum_exps += tf.math.exp(exponent)
 
@@ -97,7 +98,7 @@ class RobustifyNetwork(tf.keras.Model):
                     self.feedforward_pass(self.x_input)
 
                     #L1 certificate -- epsilon is converted
-                    self.loss, self.acc_bound = self.certificate_loss(np.sqrt(self.num_features) * epsilon)
+                    self.loss, self.acc_bound = self.certificate_loss(np.sqrt(self.num_features) * epsilon, label)
 
                 if evaluate:
                     self.acc_bound = (self.acc_bound).numpy()
