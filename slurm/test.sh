@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --array=0-600
+#SBATCH --array=209,537,866
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH --job-name=robustness
 #SBATCH --mem=8GB
 #SBATCH -t 0:60:00
 #SBATCH -D ./log/
-#SBATCH --partition=cbmm
+#SBATCH --partition=normal
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=any-gpu
 

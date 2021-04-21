@@ -9,7 +9,7 @@ def config_experiments(results_dir, create_json=True):
 
     id = 0
     experiment_list = []
-    for dataset in [67] + [0, 66] + list(range(20, 66)): #165 experiments per datasets
+    for dataset in [67] + [0, 66]: #315 experiments per dataset!
 
         restart = False
         if dataset == 67: #CIFAR
@@ -24,20 +24,22 @@ def config_experiments(results_dir, create_json=True):
             standarize = True
             multiplier = 255.0
 
-        else: #UCI
-            standarize = False
-            multiplier = 255.0
+        for net in ["ThreeLayer", "CNN2"]:
 
-        #315 experiments per dataset!
+            if net == "CNN2":
+                restart = True
+                batch_size = 256
+            else:
+                batch_size = 256
 
-        for net in ["ThreeLayer"]: #Vanilla
+            #Vanilla
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 config = base_config.copy()
                 config["data_set"] = dataset
                 config["model_name"] = str(id)
                 config["restart"] = restart
                 config["backbone"] = net
-                config["training_batch_size"] = 256
+                config["training_batch_size"] = batch_size
                 config["initial_learning_rate"] = lr
                 config["robust_training"] = False
                 config["pgd_training"] = False
@@ -54,14 +56,14 @@ def config_experiments(results_dir, create_json=True):
                 experiment_list.append(config.copy())
                 id += 1
 
-        for net in ["ThreeLayer"]: #Linf approx
+            #Linf approx
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["restart"] = restart
-                    config["training_batch_size"] = 256
+                    config["training_batch_size"] = batch_size
                     config["backbone"] = net
                     config["initial_learning_rate"] = lr
                     config["epsilon"] = epsilon
@@ -80,13 +82,13 @@ def config_experiments(results_dir, create_json=True):
                     experiment_list.append(config.copy())
                     id += 1
 
-        for net in ["ThreeLayer"]: #L1 approx
+            #L1 approx
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
-                    config["training_batch_size"] = 256
+                    config["training_batch_size"] = batch_size
                     config["restart"] = restart
                     config["backbone"] = net
                     config["initial_learning_rate"] = lr
@@ -107,15 +109,15 @@ def config_experiments(results_dir, create_json=True):
                     experiment_list.append(config.copy())
                     id += 1
 
-        for net in ["ThreeLayer+pgd"]: #Madry
+            #Madry
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 for epsilon_pgd_training in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
-                    config["training_batch_size"] = 256
+                    config["training_batch_size"] = batch_size
                     config["restart"] = restart
-                    config["backbone"] = net
+                    config["backbone"] = net + "+pgd"
                     config["initial_learning_rate"] = lr
                     config["max_num_training_steps"] = 5000
                     config["epsilon"] = epsilon
@@ -134,13 +136,13 @@ def config_experiments(results_dir, create_json=True):
                     experiment_list.append(config.copy())
                     id += 1
 
-        for net in ["ThreeLayer"]: #Certificate
+            #Certificate
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
-                    config["training_batch_size"] = 256
+                    config["training_batch_size"] = batch_size
                     config["backbone"] = net
                     config["restart"] = restart
                     config["initial_learning_rate"] = lr
@@ -167,19 +169,19 @@ def config_experiments(results_dir, create_json=True):
 
 def check_uncompleted(results_dir, experiments_list):
 
-    for experiment in experiments_list[:1000]:
+    for experiment in experiments_list:
         if not os.path.isfile(results_dir + experiment["model_name"] + '/results/training.done'):
             print(experiment["model_name"], end = ',')
 
     print("\n Check train completed")
 
-    for experiment in experiments_list[:1000]:
+    for experiment in experiments_list:
         if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testing.done'):
             print(experiment["model_name"], end = ',')
 
     print("\n Check test completed")
 
-    for experiment in experiments_list[:1000]:
+    for experiment in experiments_list:
         if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testing_bound.done'):
             print(experiment["model_name"], end = ',')
 
