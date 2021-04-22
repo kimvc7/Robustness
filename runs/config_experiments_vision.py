@@ -27,7 +27,7 @@ def config_experiments(results_dir, create_json=True):
         for net in ["ThreeLayer", "CNN2"]:
 
             if net == "CNN2":
-                restart = True
+                #restart = True
                 batch_size = 256
             else:
                 batch_size = 256
