@@ -1,4 +1,4 @@
-for number in {0..9}
+for number in {0..119}
 do
 
 	  
@@ -9,10 +9,10 @@ do
 
 		singularity exec --nv /raid/poggio/home/xboix/containers/xboix-tensorflow2.4.simg \
 			python3 main.py \
-			--experiment_id=$((238 + 8*$number + $gpu)) \
+			--experiment_id=$((945 + 8*$number + $gpu)) \
 			--filesystem=dgx1 \
-			--experiment_name=threelayer \
-			--run=test \
+			--experiment_name=vision \
+			--run=train \
 			--gpu_id=$gpu &
 
 	done

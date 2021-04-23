@@ -9,28 +9,29 @@ def config_experiments(results_dir, create_json=True):
 
     id = 0
     experiment_list = []
-    for dataset in [67] + [0, 66]: #315 experiments per dataset!
+    for net in ["ThreeLayer", "CNN2"]:
 
-        restart = False
-        if dataset == 67: #CIFAR
-            standarize = True
-            multiplier = 255.0
+        if net == "CNN2":
+            #restart = True
+            batch_size = 64
+        else:
+            batch_size = 256
 
-        elif dataset == 0: #MNIST
-            standarize = True
-            multiplier = 255.0
+        for dataset in [67] + [0, 66]: #315 experiments per dataset!
 
-        elif dataset == 66: #fashion MNIST
-            standarize = True
-            multiplier = 255.0
+            restart = False
+            if dataset == 67: #CIFAR
+                standarize = True
+                multiplier = 255.0
 
-        for net in ["ThreeLayer", "CNN2"]:
+            elif dataset == 0: #MNIST
+                standarize = True
+                multiplier = 255.0
 
-            if net == "CNN2":
-                #restart = True
-                batch_size = 256
-            else:
-                batch_size = 256
+            elif dataset == 66: #fashion MNIST
+                standarize = True
+                multiplier = 255.0
+
 
             #Vanilla
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:

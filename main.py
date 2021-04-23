@@ -62,7 +62,7 @@ else:
     elif args.experiment_name == 'synthetic':
         import runs.config_experiments_synthetic as run_exp
     elif args.experiment_name == 'uci':
-        import runs.config_experiments_uci as run_exp
+        import runs.config_experiments_uci_old as run_exp
     elif args.experiment_name == 'fashion':
         import runs.config_experiments_fashion as run_exp
     elif args.experiment_name == 'onelayer':

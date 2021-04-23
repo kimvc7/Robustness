@@ -39,6 +39,7 @@ class _DataSet(object):
       images = images.reshape(images.shape[0], num_features)
 
     if dtype == dtypes.float32:
+      print("DIVIDE!!")
       # Convert from [0, 255] -> [0.0, 1.0].
       images = images.astype(numpy.float32)
       images = numpy.multiply(images, 1.0 / 255.0)
@@ -199,12 +200,13 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=Fa
         X_test = tmpX
         y_test = tmpY - 1
 
-
       del tmpX
       del tmpY
 
     num_features = X_train.shape[1]
-
+    X_train = multiplier*X_train
+    X_val = multiplier*X_val
+    X_test = multiplier*X_test
 
   print("There are", X_train.shape[0], "samples in the training set.")
   print("There are", X_val.shape[0], "samples in the validation set.")
