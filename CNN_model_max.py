@@ -34,25 +34,36 @@ class Model(object):
 
     z1 = self._conv2d(self.x_image, self.W_conv1) + self.b_conv1
     h_conv1 = tf.nn.relu(z1)
+    h_pool1 = self._max_pool_2x2(h_conv1)
+    self.indices_1 = tf.reshape(tf.vectorized_map(self.pool_argmax, h_conv1), tf.shape(h_pool1))
+
 
     new_shape = [batch_size*num_features, tf.shape(z1)[1], tf.shape(z1)[2], tf.shape(z1)[3]]
     offset = self._conv2d(tf.reshape(tf.eye(num_features), [-1, 28, 28, 1]), self.W_conv1)
     self.g_1_pos = tf.reshape(self.eps_l1*offset[None] + z1[:, None], new_shape)
     self.g_1_neg = tf.reshape(-self.eps_l1*offset[None] + z1[:, None], new_shape)
-    filt1 = tf.repeat(tf.sign(h_conv1), repeats = num_features*tf.ones(batch_size, tf.int32), axis = 0)
+    filt1 = tf.repeat(tf.sign(h_pool1), repeats = num_features*tf.ones(batch_size, tf.int32), axis = 0)
+    shape1 = tf.shape(filt1)
     
     # second convolutional layer
     self.W_conv2 = self._weight_variable([5,5,32,64])
     self.b_conv2 = self._bias_variable([64])
 
-    h_conv2 = tf.nn.relu(self._conv2d(h_conv1, self.W_conv2) + self.b_conv2)
-    h_pool2 = self._avg_pool_4x4(h_conv2)
+    z2 = self._conv2d(h_pool1, self.W_conv2) + self.b_conv2
+    h_conv2 = tf.nn.relu(z2)
+    h_pool2 = self._max_pool_2x2(h_conv2)
+    self.indices_2 = tf.reshape(tf.vectorized_map(self.pool_argmax, h_conv2), tf.shape(h_pool2))
 
-    self.g_2_pos1 = self._conv2d(tf.nn.relu(self.g_1_pos), tf.nn.relu(self.W_conv2)) - self._conv2d(tf.multiply(self.g_1_pos, filt1), tf.nn.relu(-self.W_conv2))
-    self.g_2_pos2 = self._conv2d(tf.nn.relu(self.g_1_pos), tf.nn.relu(-self.W_conv2)) - self._conv2d(tf.multiply(self.g_1_pos, filt1), tf.nn.relu(self.W_conv2))
-    self.g_2_neg1 = self._conv2d(tf.nn.relu(self.g_1_neg), tf.nn.relu(self.W_conv2)) - self._conv2d(tf.multiply(self.g_1_neg, filt1), tf.nn.relu(-self.W_conv2))
-    self.g_2_neg2 = self._conv2d(tf.nn.relu(self.g_1_neg), tf.nn.relu(-self.W_conv2)) - self._conv2d(tf.multiply(self.g_1_neg, filt1), tf.nn.relu(self.W_conv2))
-    filt2 = tf.repeat(tf.sign(h_conv2), repeats = num_features*tf.ones(batch_size, tf.int32), axis = 0)
+    g_1_pos_max = tf.reshape(tf.vectorized_map(self._gather_max, (self.g_1_pos, tf.repeat(self.indices_1, repeats=num_features, axis=0))), shape1)
+    g_1_neg_max = tf.reshape(tf.vectorized_map(self._gather_max, (self.g_1_neg, tf.repeat(self.indices_1, repeats=num_features, axis=0))), shape1)
+
+
+    self.g_2_pos1 = self._conv2d(self._max_pool_2x2(tf.nn.relu(self.g_1_pos)), tf.nn.relu(self.W_conv2)) - self._conv2d(tf.multiply(g_1_pos_max, filt1), tf.nn.relu(-self.W_conv2))
+    self.g_2_pos2 = self._conv2d(self._max_pool_2x2(tf.nn.relu(self.g_1_pos)), tf.nn.relu(-self.W_conv2)) - self._conv2d(tf.multiply(g_1_pos_max, filt1), tf.nn.relu(self.W_conv2))
+    self.g_2_neg1 = self._conv2d(self._max_pool_2x2(tf.nn.relu(self.g_1_neg)), tf.nn.relu(self.W_conv2)) - self._conv2d(tf.multiply(g_1_neg_max, filt1), tf.nn.relu(-self.W_conv2))
+    self.g_2_neg2 = self._conv2d(self._max_pool_2x2(tf.nn.relu(self.g_1_neg)), tf.nn.relu(-self.W_conv2)) - self._conv2d(tf.multiply(g_1_neg_max, filt1), tf.nn.relu(self.W_conv2))
+    filt2 = tf.repeat(tf.sign(h_pool2), repeats = num_features*tf.ones(batch_size, tf.int32), axis = 0)
+    shape2 = tf.shape(filt2)
 
 
     # first fully connected layer
@@ -62,11 +73,13 @@ class Model(object):
     h_pool2_flat = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, self.W_fc1) + self.b_fc1)
 
-    g_2_pos1_flat =  tf.reshape(self._avg_pool_4x4(tf.nn.relu(self.g_2_pos1 + self.b_conv2)), [-1, 7 * 7 * 64])
-    g_2_neg1_flat =  tf.reshape(self._avg_pool_4x4(tf.nn.relu(self.g_2_neg1 + self.b_conv2)), [-1, 7 * 7 * 64])
+    g_2_pos1_flat =  tf.reshape(self._max_pool_2x2(tf.nn.relu(self.g_2_pos1 + self.b_conv2)), [-1, 7 * 7 * 64])
+    g_2_neg1_flat =  tf.reshape(self._max_pool_2x2(tf.nn.relu(self.g_2_neg1 + self.b_conv2)), [-1, 7 * 7 * 64])
 
-    g_2_pos2_flat = tf.reshape(self._avg_pool_4x4(tf.multiply(-self.g_2_pos2 + self.b_conv2, filt2)), [-1, 7 * 7 * 64])
-    g_2_neg2_flat = tf.reshape(self._avg_pool_4x4(tf.multiply(-self.g_2_neg2 + self.b_conv2, filt2)), [-1, 7 * 7 * 64])
+    g_2_pos2_pool = tf.reshape(tf.vectorized_map(self._gather_max, (-self.g_2_pos2+ self.b_conv2, tf.repeat(self.indices_2, repeats=num_features, axis=0))), shape2)
+    g_2_neg2_pool = tf.reshape(tf.vectorized_map(self._gather_max, (-self.g_2_neg2+ self.b_conv2, tf.repeat(self.indices_2, repeats=num_features, axis=0))), shape2)
+    g_2_pos2_flat = tf.reshape(tf.multiply(g_2_pos2_pool, filt2), [-1, 7 * 7 * 64])
+    g_2_neg2_flat = tf.reshape(tf.multiply(g_2_neg2_pool, filt2), [-1, 7 * 7 * 64])
 
 
     self.g_3_pos1 = tf.matmul(g_2_pos1_flat, tf.nn.relu(self.W_fc1)) - tf.matmul(g_2_pos2_flat, tf.nn.relu(-self.W_fc1))
@@ -133,6 +146,7 @@ class Model(object):
     self.robust_l1_xent_approx = tf.reduce_mean(tf.log(sum_exps))  #l1 robust approximation using our gradient method (no theoretical guarantees)
     self.robust_linf_xent_approx = tf.reduce_mean(tf.log(sum_exps1))#linf robust approximation using our gradient method (no theoretical guarantees)
 
+
   @staticmethod
   def _weight_variable(shape):
       initial = tf.glorot_uniform_initializer()
@@ -140,12 +154,21 @@ class Model(object):
 
   @staticmethod
   def _bias_variable(shape):
-      initial = tf.constant(0.1, shape = shape)
-      return tf.Variable(initial)
+      initial = tf.glorot_uniform_initializer()
+      return tf.get_variable(shape=shape, initializer=initial, name=str(np.random.randint(2e15)))
+
+  @tf.function 
+  def _gather_max(self, args):
+    x, indices = args
+    return tf.gather(tf.reshape(x, [-1]), indices)
 
   @staticmethod
   def _conv2d(x, W):
       return tf.nn.conv2d(x, W, strides=[1,1,1,1], padding='SAME')
+
+  @tf.function
+  def pool_argmax(self, args):
+      return tf.nn.max_pool_with_argmax(args[None], ksize = [1,2,2,1], strides=[1,2,2,1], padding='SAME', include_batch_in_index=True)[1]
 
   @staticmethod
   def _max_pool_2x2( x):

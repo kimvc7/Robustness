@@ -72,9 +72,13 @@ class Model(object):
 
     robust_objective = 0
     robust_acc = 0
+    self.mask = tf.equal(self.labels, 0)
 
     for k in range(num_classes):
       mask = tf.equal(self.labels, k)
+      print(self.labels)
+      print(mask)
+      print(self.g_3_pos1)
       g_3k_pos1 = tf.boolean_mask(self.g_3_pos1, mask)
       g_3k_pos2 = tf.boolean_mask(self.g_3_pos2, mask)
       g_3k_neg1 = tf.boolean_mask(self.g_3_neg1, mask)
