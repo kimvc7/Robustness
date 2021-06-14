@@ -76,9 +76,6 @@ class Model(object):
 
     for k in range(num_classes):
       mask = tf.equal(self.labels, k)
-      print(self.labels)
-      print(mask)
-      print(self.g_3_pos1)
       g_3k_pos1 = tf.boolean_mask(self.g_3_pos1, mask)
       g_3k_pos2 = tf.boolean_mask(self.g_3_pos2, mask)
       g_3k_neg1 = tf.boolean_mask(self.g_3_neg1, mask)
@@ -108,16 +105,29 @@ class Model(object):
     pre_softmax_t = tf.transpose(self.pre_softmax)
     self.nom_exponent = pre_softmax_t -  tf.gather_nd(pre_softmax_t, indices)
 
-    sum_exps = 0
-    sum_exps1 = 0
+    sum_exps_l1 = 0
+    sum_exps_linf = 0
+    sum_exps_l2 = 0
+
     for i in range(num_classes):
       grad = tf.gradients(self.nom_exponent[i], self.x_input)
-      exponent = self.eps_l1*tf.reduce_max(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
-      exponent1 = eps*tf.reduce_sum(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
-      sum_exps+=tf.exp(exponent)
-      sum_exps1+=tf.exp(exponent1)
-    self.robust_l1_xent_approx = tf.reduce_mean(tf.log(sum_exps))  #l1 robust approximation using our gradient method (no theoretical guarantees)
-    self.robust_linf_xent_approx = tf.reduce_mean(tf.log(sum_exps1))#linf robust approximation using our gradient method (no theoretical guarantees)
+
+      exponent_l1 = self.eps_l1*tf.reduce_max(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
+      exponent_linf = eps*tf.reduce_sum(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
+      exponent_l2  = eps*tf.reduce_sum(tf.square(grad[0]), axis=1) + self.nom_exponent[i]
+
+      sum_exps_l1 +=tf.exp(exponent_l1)
+      sum_exps_linf+=tf.exp(exponent_linf)
+      sum_exps_l2+=tf.exp(exponent_l2)
+
+    self.robust_l1_xent_approx = tf.reduce_mean(tf.log(sum_exps_l1))  #l1 robust approximation using our gradient method (no theoretical guarantees)
+    self.robust_linf_xent_approx = tf.reduce_mean(tf.log(sum_exps_linf))#linf robust approximation using our gradient method (no theoretical guarantees)
+    self.robust_l2_xent_approx = tf.reduce_mean(tf.log(sum_exps_l2)) #l2 robust approximation using our gradient method (no theoretical guarantees)
+
+    gradient = tf.gradients(self.xent, self.x_input)[0]
+    self.robust_l1_xent_baseline = self.xent + eps* tf.reduce_max(tf.abs(gradient[0])) 
+    self.robust_linf_xent_baseline = self.xent + eps* tf.reduce_sum(tf.abs(gradient[0])) 
+    self.robust_l2_xent_baseline = self.xent + eps* tf.reduce_sum(tf.square(gradient[0])) 
 
 
     #Evaluation

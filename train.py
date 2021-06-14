@@ -15,8 +15,8 @@ import subprocess
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 
-from CNN_model import Model
-#from three_layer_model import Model
+#from CNN_model import Model
+from three_layer_model import Model
 
 from pgd_attack import LinfPGDAttack
 
@@ -80,7 +80,7 @@ test_dict = {model.x_input: data.test.images,
                 model.y_input: data.test.labels.reshape(-1)}
 
 # Setting up the optimizer
-optimizer = tf.train.AdamOptimizer(1e-3).minimize(model.robust_l1_xent_approx, global_step=global_step)
+optimizer = tf.train.AdamOptimizer(1e-4).minimize(model.robust_linf_xent_baseline, global_step=global_step)
 
 
 model_dir = config['model_dir']
@@ -119,9 +119,10 @@ with tf.Session() as sess:
       nat_xent = sess.run(model.xent, feed_dict=nat_dict)
       test_xent = sess.run(model.xent, feed_dict=test_dict)
       adv_xent = sess.run(model.xent, feed_dict=adv_dict)
-      robust_l1_xent_approx = sess.run(model.robust_l1_xent_approx, feed_dict=nat_dict)
+      robust_linf_xent_approx = sess.run(model.robust_linf_xent_approx, feed_dict=nat_dict)
+      robust_linf_xent_baseline= sess.run(model.robust_linf_xent_baseline, feed_dict=nat_dict)
       robust_l1_xent = sess.run(model.robust_l1_xent, feed_dict=nat_dict)
-      test_robust_l1_xent_approx = sess.run(model.robust_l1_xent_approx, feed_dict=test_dict)
+      test_robust_linf_xent_approx = sess.run(model.robust_linf_xent_approx, feed_dict=test_dict)
 
       print('Step {}:    ({})'.format(ii, datetime.now()))
       print('    batch nat accuracy {:.4}'.format(nat_acc * 100))
@@ -131,9 +132,10 @@ with tf.Session() as sess:
       print('    Batch Nat Xent {:.4}'.format(nat_xent))
       print('    Batch linf Adv Xent {:.4}'.format(adv_xent))
       print('    Batch Robust l1 Xent {:.4}'.format(robust_l1_xent))
-      print('    Batch Robust l1 Xent Approx {:.4}'.format(robust_l1_xent_approx))
+      print('    Batch Robust l1 Xent Approx {:.4}'.format(robust_linf_xent_approx))
+      print('    Batch Robust l1 Xent Baseline {:.4}'.format(robust_linf_xent_baseline))
       print('    Testing Nat Xent {:.4}'.format(test_xent))
-      print('    Testing Robust Xent {:.4}'.format(test_robust_l1_xent_approx))
+      print('    Testing Robust Xent {:.4}'.format(test_robust_linf_xent_approx))
 
 
       
@@ -143,8 +145,8 @@ with tf.Session() as sess:
           tf.Summary.Value(tag='Test Xent', simple_value= test_xent),
           tf.Summary.Value(tag='Test Acc', simple_value= test_acc)])
       summary1 = tf.Summary(value=[
-          tf.Summary.Value(tag='Xent', simple_value= robust_l1_xent_approx),
-          tf.Summary.Value(tag='Testing Xent', simple_value= test_robust_l1_xent_approx)])
+          tf.Summary.Value(tag='Xent', simple_value= robust_linf_xent_approx),
+          tf.Summary.Value(tag='Testing Xent', simple_value= test_robust_linf_xent_approx)])
       summary2 = tf.Summary(value=[
           tf.Summary.Value(tag='Xent', simple_value= adv_xent),
           tf.Summary.Value(tag='Acc', simple_value= adv_acc)])
