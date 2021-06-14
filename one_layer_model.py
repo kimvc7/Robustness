@@ -88,7 +88,7 @@ class Model(object):
 
       exponent_l1 = self.eps_l1*tf.reduce_max(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
       exponent_linf = eps*tf.reduce_sum(tf.abs(grad[0]), axis=1) + self.nom_exponent[i]
-      exponent_l2  = eps*tf.reduce_sum(tf.square(grad[0]), axis=1) + self.nom_exponent[i]
+      exponent_l2  = eps*tf.sqrt(tf.reduce_sum(tf.square(grad[0]), axis=1)) + self.nom_exponent[i]
 
       sum_exps_l1 +=tf.exp(exponent_l1)
       sum_exps_linf+=tf.exp(exponent_linf)
@@ -101,7 +101,11 @@ class Model(object):
     gradient = tf.gradients(self.xent, self.x_input)[0]
     self.robust_l1_xent_baseline = self.xent + eps* tf.reduce_max(tf.abs(gradient[0])) 
     self.robust_linf_xent_baseline = self.xent + eps* tf.reduce_sum(tf.abs(gradient[0])) 
-    self.robust_l2_xent_baseline = self.xent + eps* tf.reduce_sum(tf.square(gradient[0])) 
+    self.robust_l2_xent_baseline = self.xent + eps* tf.sqrt(tf.reduce_sum(tf.square(gradient[0])))
+
+    self.robust_l1_xent_baseline_squared = self.xent + eps* tf.square(tf.reduce_max(tf.abs(gradient[0])))
+    self.robust_linf_xent_baseline_squared = self.xent + eps* tf.square(tf.reduce_sum(tf.abs(gradient[0])))
+    self.robust_l2_xent_baseline_squared = self.xent + eps* tf.reduce_sum(tf.square(gradient[0]))
 
     #Evaluation
     correct_prediction = tf.equal(self.y_pred, self.y_input)

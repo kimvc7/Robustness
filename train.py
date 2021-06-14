@@ -80,7 +80,7 @@ test_dict = {model.x_input: data.test.images,
                 model.y_input: data.test.labels.reshape(-1)}
 
 # Setting up the optimizer
-optimizer = tf.train.AdamOptimizer(1e-4).minimize(model.robust_linf_xent_baseline, global_step=global_step)
+optimizer = tf.train.AdamOptimizer(1e-4).minimize(model.robust_linf_xent_baseline_squared, global_step=global_step)
 
 
 model_dir = config['model_dir']
@@ -120,7 +120,7 @@ with tf.Session() as sess:
       test_xent = sess.run(model.xent, feed_dict=test_dict)
       adv_xent = sess.run(model.xent, feed_dict=adv_dict)
       robust_linf_xent_approx = sess.run(model.robust_linf_xent_approx, feed_dict=nat_dict)
-      robust_linf_xent_baseline= sess.run(model.robust_linf_xent_baseline, feed_dict=nat_dict)
+      robust_linf_xent_baseline= sess.run(model.robust_linf_xent_baseline_squared, feed_dict=nat_dict)
       robust_l1_xent = sess.run(model.robust_l1_xent, feed_dict=nat_dict)
       test_robust_linf_xent_approx = sess.run(model.robust_linf_xent_approx, feed_dict=test_dict)
 
