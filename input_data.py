@@ -6,6 +6,7 @@ from tensorflow.python.framework import random_seed
 import numpy
 import json
 import pickle
+import numpy as np
 
 _Datasets = collections.namedtuple('_Datasets', ['train', 'validation', 'test'])
 
@@ -38,11 +39,10 @@ class _DataSet(object):
       labels = labels.reshape(labels.shape[0])    
       images = images.reshape(images.shape[0], num_features)
 
-    if dtype == dtypes.float32:
-      print("DIVIDE!!")
-      # Convert from [0, 255] -> [0.0, 1.0].
-      images = images.astype(numpy.float32)
-      images = numpy.multiply(images, 1.0 / 255.0)
+    #if dtype == dtypes.float32:
+    # Convert from [0, 255] ->  [0.0, 1.0].
+    images = images.astype(numpy.float32)
+    images = numpy.multiply(images, 1.0 / 255.0) #this has been compensated previously by *multiplier!
 
     self._num_examples = images.shape[0]
     self._images = images
@@ -112,7 +112,7 @@ class _DataSet(object):
       return self._images[start:end], self._labels[start:end]
 
 
-def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=False, multiplier=1, dtype=dtypes.float32):
+def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=False, multiplier=1, re_size=1, dtype=dtypes.float32):
 
   with open(results_dir + 'configs_datasets/' + str(data_set) + '.json') as config_file:
     config = json.load(config_file)
@@ -122,15 +122,20 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=Fa
           or config["dataset_name"] == "fashion_mnist":
     if config["dataset_name"] == "cifar":
       (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
-      num_features = X_train.shape[1]*X_train.shape[2]*X_train.shape[3]
+      X_train = X_train[:,::re_size,::re_size,:]
+      X_test = X_test[:,::re_size,::re_size,:]
+      num_features = int(int(X_train.shape[1])*int(X_train.shape[2])*X_train.shape[3])
       color = True
     if config["dataset_name"] == "mnist":
       (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
-      num_features = X_train.shape[1]*X_train.shape[2]
+      X_train = X_train[:,::re_size,::re_size]
+      X_test = X_test[:,::re_size,::re_size]
+      num_features = int(int(X_train.shape[1])*int(X_train.shape[2]))
     if config["dataset_name"] == "fashion_mnist":
       (X_train, y_train), (X_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
-      num_features = X_train.shape[1]*X_train.shape[2]
-
+      X_train = X_train[:,::re_size,::re_size]
+      X_test = X_test[:,::re_size,::re_size]
+      num_features = int(int(X_train.shape[1])*int(X_train.shape[2]))
 
     X_val = X_train[:config["validation_size"]].astype('float')
     y_val = y_train[:config["validation_size"]]

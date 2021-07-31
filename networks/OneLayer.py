@@ -17,6 +17,7 @@ class robustOneLayer(robustify_network.RobustifyNetwork):
     num_classes = config['num_classes']
     batch_decrease_learning_rate = float(config['batch_decrease_learning_rate'])
 
+    self.batch_size = training_batch_size
     self.mode = 'train'
     self.num_features = num_features
     self.l1_size = l1_size
@@ -42,6 +43,8 @@ class robustOneLayer(robustify_network.RobustifyNetwork):
 
   def feedforward_pass(self, input):
     # Fully connected layers.
+    self.batch_size = input.shape[0]
+
     self.z1 = tf.matmul(input, self.W1) + self.b1
     self.h1 = tf.nn.relu(self.z1)
     self.pre_softmax = tf.matmul(self.h1, self.W2) + self.b2
@@ -51,23 +54,27 @@ class robustOneLayer(robustify_network.RobustifyNetwork):
 
     labels_r = tf.repeat(labels, repeats = self.num_features, axis = 0)
 
+    self.g_1_pos = tf.reshape(epsilon*self.W1[None] + self.z1[:, None], [self.num_features* tf.shape(self.z1)[0], self.l1_size])
+    self.g_1_neg = tf.reshape(-epsilon*self.W1[None] + self.z1[:, None], [self.num_features* tf.shape(self.z1)[0], self.l1_size])
+    filt = tf.repeat(tf.sign(self.h1), repeats = self.num_features*tf.ones(self.batch_size, tf.int32), axis = 0)
+
     robust_objective = 0
     robust_acc = 0
 
     for k in range(self.num_classes):
       mask = tf.equal(labels_r, k)
-      z_k = tf.boolean_mask(self.z1, mask)
+      h_1_pos = tf.boolean_mask(self.g_1_pos, mask)
+      h_1_neg = tf.boolean_mask(self.g_1_neg, mask)
+      filt_k = tf.boolean_mask(filt, mask)
+
       W2_k = self.W2 - tf.gather(self.W2, [k], axis=1)
-      h_1_pos = tf.reshape(epsilon*self.W1[None] + z_k[:, None], [self.num_features * tf.shape(z_k)[0], self.l1_size])
-      h_1_neg = tf.reshape(-epsilon*self.W1[None] + z_k[:, None], [self.num_features * tf.shape(z_k)[0], self.l1_size])
-      filt = tf.repeat(tf.nn.relu(tf.sign(z_k)), repeats = self.num_features * tf.ones(tf.shape(z_k)[0], tf.int32), axis = 0)
-      objectives_pos = tf.matmul(tf.nn.relu(h_1_pos), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_pos, filt), tf.nn.relu(-W2_k))
-      objectives_neg = tf.matmul(tf.nn.relu(h_1_neg), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_neg, filt), tf.nn.relu(-W2_k))
+      objectives_pos = tf.matmul(tf.nn.relu(h_1_pos), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_pos, filt_k), tf.nn.relu(-W2_k))
+      objectives_neg = tf.matmul(tf.nn.relu(h_1_neg), tf.nn.relu(W2_k)) - tf.matmul(tf.multiply(h_1_neg, filt_k), tf.nn.relu(-W2_k))
       objectives_max = tf.maximum(objectives_pos, objectives_neg)
-      objectives = tf.nn.max_pool(tf.reshape(objectives_max, [1, self.num_features * tf.shape(z_k)[0], self.num_classes, 1]), [1, self.num_features, 1, 1], [1, self.num_features, 1, 1], "SAME")
+      objectives = tf.nn.max_pool(tf.reshape(objectives_max, [1, tf.shape(objectives_max)[0], self.num_classes, 1]), [1, self.num_features, 1, 1], [1, self.num_features, 1, 1], "SAME")
       logits_diff = objectives + tf.reshape(self.b2 - self.b2[k], [1, 1, self.num_classes, 1])
       robust_acc += tf.reduce_sum(tf.cast(tf.reduce_all(tf.less_equal(logits_diff, tf.constant([0.0])), axis = 2), tf.float32))
-      robust_objective += tf.reduce_sum(tf.reduce_logsumexp(objectives + tf.reshape(self.b2 - self.b2[k], [1, 1, self.num_classes, 1]), axis = 2))
+      robust_objective += tf.reduce_sum( tf.reduce_logsumexp(objectives + tf.reshape(self.b2 - self.b2[k], [1, 1, self.num_classes, 1]), axis = 2))
 
     self.acc_bound = robust_acc/tf.cast(tf.shape(labels)[0], tf.float32)
     self.loss = robust_objective/tf.cast(tf.shape(labels)[0], tf.float32)

@@ -52,6 +52,9 @@ class robustThreeLayer(robustify_network.RobustifyNetwork):
         self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
 
     def feedforward_pass(self, input):
+
+        self.batch_size = input.shape[0]
+
         self.z1 = tf.matmul(input, self.W1) + self.b1
         self.h1 = tf.nn.relu(self.z1)
 

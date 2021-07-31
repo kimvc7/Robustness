@@ -2,6 +2,7 @@
   "_comment": "===== MODEL CONFIGURATION =====",
   "model_name": "0",
   "restart": false,
+  "skip": false,
 
   "data_set": 0,
 
@@ -30,6 +31,7 @@
   "bound_lower": 0,
   "standarize": false,
   "standarize_multiplier": 1,
+  "re_size": 1,
 
   "pgd_training": false,
   "epsilon_pgd_training": 0.1

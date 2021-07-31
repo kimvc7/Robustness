@@ -9,18 +9,35 @@ def config_experiments(results_dir, create_json=True):
 
     id = 0
     experiment_list = []
-    for net in ["ThreeLayer", "OneLayer"]:
+    for net in ["ThreeLayer", "CNN2", "CNN"]:
 
-        for dataset in [20, 24, 35, 36, 61]: #315 experiments per dataset!
+        if net == "CNN2":
+            #restart = True
+            batch_size = 64
+        else:
+            batch_size = 256
+
+        for dataset in [67] + [0, 66]: #315 experiments per dataset!
 
             restart = False
-            standarize = False
-            multiplier = 255.0
-            batch_size = 256
+            if dataset == 67: #CIFAR
+                standarize = True
+                multiplier = 255.0
+
+            elif dataset == 0: #MNIST
+                standarize = True
+                multiplier = 255.0
+
+            elif dataset == 66: #fashion MNIST
+                standarize = True
+                multiplier = 255.0
+
 
             #Vanilla
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 config = base_config.copy()
+                if net == "CNN2":
+                    config["skip"] = True
                 config["data_set"] = dataset
                 config["model_name"] = str(id)
                 config["restart"] = restart
@@ -46,6 +63,8 @@ def config_experiments(results_dir, create_json=True):
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
+                    if net == "CNN2":
+                        config["skip"] = True
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["restart"] = restart
@@ -72,6 +91,8 @@ def config_experiments(results_dir, create_json=True):
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
+                    if net == "CNN2":
+                        config["skip"] = True
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["training_batch_size"] = batch_size
@@ -99,6 +120,8 @@ def config_experiments(results_dir, create_json=True):
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 for epsilon_pgd_training in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
+                    if net == "CNN2":
+                        config["skip"] = True
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["training_batch_size"] = batch_size
@@ -126,6 +149,8 @@ def config_experiments(results_dir, create_json=True):
             for lr in [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]:
                 for epsilon in [1e-4, 1e-5, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 1, 3, 5, 10]:
                     config = base_config.copy()
+                    if net == "CNN2":
+                        config["skip"] = True
                     config["data_set"] = dataset
                     config["model_name"] = str(id)
                     config["training_batch_size"] = batch_size
@@ -156,19 +181,26 @@ def config_experiments(results_dir, create_json=True):
 def check_uncompleted(results_dir, experiments_list):
 
     for experiment in experiments_list:
+        if experiment["skip"]:
+            continue
         if not os.path.isfile(results_dir + experiment["model_name"] + '/results/training.done'):
             print(experiment["model_name"], end = ',')
 
     print("\n Check train completed")
-
+    '''
     for experiment in experiments_list:
+        if experiment["skip"]:
+            continue
         if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testing.done'):
             print(experiment["model_name"], end = ',')
 
     print("\n Check test completed")
-
+     
     for experiment in experiments_list:
+        if experiment["skip"]:
+            continue
         if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testing_bound.done'):
             print(experiment["model_name"], end = ',')
 
     print("\n Check bound completed")
+    '''

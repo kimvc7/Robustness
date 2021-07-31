@@ -17,6 +17,10 @@ def train(config):
         print("Download the model manually")
         return
 
+    if config["skip"]:
+        print("SKIP")
+        return
+
     # Setting up training parameters
     seed = config['random_seed']
     tf.random.set_seed(seed)
@@ -37,8 +41,11 @@ def train(config):
 
     # Setting up the data and the model
     data = input_data.load_data_set(results_dir=config['results_dir'], data_set=config['data_set'],
-                                    standarized=config["standarize"], multiplier=config["standarize_multiplier"], seed=seed)
+                                    standarized=config["standarize"], multiplier=config["standarize_multiplier"],
+                                    re_size=config["re_size"], seed=seed)
     num_features = data.train.images.shape[1]
+
+    print("batch" + str(config['training_batch_size']))
     model = get_network(backbone_name, config, num_features)
 
     # Setting up attacks

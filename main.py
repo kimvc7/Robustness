@@ -15,9 +15,20 @@ parser.add_argument("--gpu_id", type=str, default="",
                             help="gpu IDs")
 parser.add_argument("--config", type=str, default="",
                             help="config instruction")
+parser.add_argument("--missing", type=bool, default=False)
+
 
 args = parser.parse_args()
 print(args)
+
+if args.missing==True:
+    missing = []
+    with open("missing", 'r') as file:
+        for row in file:
+            missing.append(int(row[:-1]))
+    args.experiment_id = missing[args.experiment_id]
+
+print("Experiment ID: " + str(args.experiment_id))
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
 
@@ -59,16 +70,18 @@ else:
         import runs.config_experiments_mnist_standarized as run_exp
     elif args.experiment_name == 'cifar':
         import runs.config_experiments_cifar as run_exp
-    elif args.experiment_name == 'synthetic':
-        import runs.config_experiments_synthetic as run_exp
     elif args.experiment_name == 'uci':
-        import runs.config_experiments_uci_old as run_exp
+        import runs.config_experiments_uci as run_exp
+    elif args.experiment_name == 'uci_all':
+        import runs.config_experiments_uci_all as run_exp
     elif args.experiment_name == 'fashion':
         import runs.config_experiments_fashion as run_exp
     elif args.experiment_name == 'onelayer':
         import runs.config_experiments_onelayer as run_exp
     elif args.experiment_name == 'vision':
         import runs.config_experiments_vision as run_exp
+    elif args.experiment_name == 'vision_small':
+        import runs.config_experiments_vision_small as run_exp
 
 
     if args.config == 'generate':
@@ -81,3 +94,7 @@ else:
     elif args.config == 'check':
         experiment_list = run_exp.config_experiments(full_results_dir, create_json=False)
         run_exp.check_uncompleted(full_results_dir, experiment_list)
+
+    elif args.config == 'get_missing':
+        experiment_list = run_exp.config_experiments(full_results_dir, create_json=False)
+        run_exp.get_missing(full_results_dir, experiment_list)

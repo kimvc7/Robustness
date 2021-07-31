@@ -11,13 +11,11 @@ import numpy as np
 import input_data
 from networks.robust_network import get_network
 
-from foolbox import TensorFlowModel, Model
-from foolbox.attacks import LinfPGD, FGSM, FGM, L2PGD
-
 
 def test_bound(config):
 
-    config['training_batch_size'] = 32 #***FOR GPU MEMORY CONSTRAINTS**
+    FACTOR_MEMORY = 2
+    config['training_batch_size'] = int(256/FACTOR_MEMORY) #***FOR GPU MEMORY CONSTRAINTS**
     # Setting up testing parameters
     seed = config['random_seed']
     tf.random.set_seed(seed)
@@ -62,7 +60,7 @@ def test_bound(config):
     ]
 
     tf.executing_eagerly()
-    num_iter = 80
+    num_iter = 10*FACTOR_MEMORY
     for dataset in ["val", "test"]:
 
         for iter in range(num_iter):

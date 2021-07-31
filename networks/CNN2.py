@@ -9,7 +9,6 @@ from __future__ import print_function
 import tensorflow as tf
 import numpy as np
 import robustify_network
-from tensorflow.python.training import py_checkpoint_reader
 
 
 class robustCNN2(robustify_network.RobustifyNetwork):

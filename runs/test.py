@@ -11,7 +11,7 @@ import input_data
 from networks.robust_network import get_network
 
 from foolbox import TensorFlowModel, Model
-from foolbox.attacks import LinfPGD, FGSM, FGM, L2PGD
+from foolbox.attacks import LinfPGD, FGSM, FGM, L2PGD, L1PGD, L1FastGradientAttack
 
 
 def test(config):
@@ -32,7 +32,9 @@ def test(config):
 
     # Setting up the data and the model
     data = input_data.load_data_set(results_dir=config['results_dir'], data_set=config['data_set'],
-                                    standarized=config["standarize"], multiplier=config["standarize_multiplier"], seed=seed)
+                                    standarized=config["standarize"], multiplier=config["standarize_multiplier"],
+                                    re_size=config["re_size"], seed=seed)
+
     num_features = data.train.images.shape[1]
     model = get_network(backbone_name, config, num_features)
 
@@ -62,13 +64,13 @@ def test(config):
             0.5,
             1.0,
         ]
-    epsilons_l2 = list(10*np.array(epsilons_inf))
+    epsilons_l2 = list(np.sqrt(num_features) * np.array(epsilons_inf))#list(10 * np.array(epsilons_inf))#
 
-    attacks = [LinfPGD(), L2PGD(), FGSM(), FGM()]
-    name_attacks = ["linf_pgd", "l2_pgd", "linf_fgsm", "l2_fgm"]
-    epsilons = [epsilons_inf, epsilons_l2, epsilons_inf, epsilons_l2]
+    attacks = [L1PGD(), L1FastGradientAttack(), LinfPGD(), L2PGD(), FGSM(), FGM()]#[L1PGD(), L1FastGradientAttack(), L2PGD(), FGM()] #[LinfPGD(), L2PGD(), FGSM(), FGM()]#
+    name_attacks = ["l1_pgd_norm", "l1_fgm_norm", "linf_pgd", "l2_pgd_norm", "linf_fgsm", "l2_fgm_norm"] #["l1_pgd_norm", "l1_fgm_norm", "l2_pgd_norm", "l2_fgm_norm"] #["linf_pgd", "l2_pgd", "linf_fgsm", "l2_fgm"]#
+    epsilons = [epsilons_l2, epsilons_l2, epsilons_inf, epsilons_l2, epsilons_inf, epsilons_l2]#[epsilons_l2, epsilons_l2, epsilons_l2, epsilons_l2]#[epsilons_inf, epsilons_l2, epsilons_inf, epsilons_l2]#
 
-    num_iter = 10
+    num_iter = int(10)# * (int(256/batch_size)))
     for attack, name_attack, epsilon in zip(attacks, name_attacks, epsilons):
 
         for dataset in ["val", "test"]:
@@ -82,6 +84,7 @@ def test(config):
 
                 clipped_advs_all = []
                 raw_advs_all = []
+
 
                 raw_advs, clipped_advs, success = attack(fmodel, tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
                                                          epsilons=epsilon)

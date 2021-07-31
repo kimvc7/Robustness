@@ -19,6 +19,7 @@ class RobustifyNetwork(tf.keras.Model):
 
     def __call__(self, input):
         self.x_input = input
+
         return self.feedforward_pass(input)
 
     @tf.function
@@ -65,42 +66,54 @@ class RobustifyNetwork(tf.keras.Model):
                         self.second_tape.watch(self.x_input)
                         self.feedforward_pass(self.x_input)
 
-                        # Compute linear approximation for robust cross-entropy.
-                        data_range = tf.range(tf.shape(self.y_input)[0])
-                        indices = tf.map_fn(lambda n: tf.stack([n, tf.cast(self.y_input[n], tf.int32)]), data_range)
+                        if type_robust == 'grad': #linf
+                            y_xent = tf.nn.sparse_softmax_cross_entropy_with_logits(
+                                labels=self.y_input, logits=self.pre_softmax)
+                            self.xent = tf.reduce_mean(y_xent)
+                            self.loss = self.xent + epsilon*self.second_tape.gradient(self.xent, self.x_input)
 
-                        self.nom_exponent = []
-                        for i in range(self.num_classes):
-                            self.nom_exponent += [self.pre_softmax[:,i] - tf.gather_nd(self.pre_softmax, indices)]
+                        else:
+                            # Compute linear approximation for robust cross-entropy.
+                            data_range = tf.range(tf.shape(self.y_input)[0])
+                            indices = tf.map_fn(lambda n: tf.stack([n, tf.cast(self.y_input[n], tf.int32)]), data_range)
 
-                    sum_exps = 0
-                    for i in range(self.num_classes):
-                        grad = self.second_tape.gradient(self.nom_exponent[i], self.x_input)
-                        if type_robust == 'clipping': #linf
-                            positive_terms = tf.math.multiply(self.M, tf.nn.relu(grad[0]))
-                            negative_terms = tf.math.multiply(self.m, tf.nn.relu(-grad[0]))
-                            exponent = tf.reduce_sum(positive_terms - negative_terms, axis=1) + self.nom_exponent[i]
-                        elif type_robust == 'l1':
-                            exponent = np.sqrt(self.num_features) * epsilon * tf.reduce_max(tf.abs(grad), axis=1) + \
-                                       self.nom_exponent[i]
-                        elif type_robust == 'l1+inf':
-                            exponent = np.sqrt(self.num_features) * epsilon * tf.reduce_max(tf.abs(grad), axis=1) + \
-                                     epsilon * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
-                        else: #linf
-                            exponent = epsilon * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
-                        sum_exps += tf.math.exp(exponent)
+                            self.nom_exponent = []
+                            for i in range(self.num_classes):
+                                self.nom_exponent += [self.pre_softmax[:,i] - tf.gather_nd(self.pre_softmax, indices)]
 
-                    self.loss = tf.reduce_mean(tf.math.log(sum_exps))
+                            sum_exps = 0
+                            for i in range(self.num_classes):
+                                grad = self.second_tape.gradient(self.nom_exponent[i], self.x_input)
+                                if type_robust == 'clipping': #linf
+                                    positive_terms = tf.math.multiply(self.M, tf.nn.relu(grad[0]))
+                                    negative_terms = tf.math.multiply(self.m, tf.nn.relu(-grad[0]))
+                                    exponent = tf.reduce_sum(positive_terms - negative_terms, axis=1) + self.nom_exponent[i]
+                                elif type_robust == 'l1':
+                                    exponent = np.sqrt(self.num_features) * epsilon * tf.reduce_max(tf.abs(grad), axis=1) + \
+                                               self.nom_exponent[i]
+                                elif type_robust == 'l1+inf':
+                                    exponent = np.sqrt(self.num_features) * epsilon * tf.reduce_max(tf.abs(grad), axis=1) + \
+                                             epsilon * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
+                                else: #linf
+                                    exponent = epsilon * tf.reduce_sum(tf.abs(grad), axis=1) + self.nom_exponent[i]
+                                sum_exps += tf.math.exp(exponent)
+
+                            self.loss = tf.reduce_mean(tf.math.log(sum_exps))
 
             else: #certificate objective:
-                with tf.GradientTape() as self.tape:
+                if not evaluate:
+                    with tf.GradientTape() as self.tape:
 
+                        self.feedforward_pass(self.x_input)
+
+                        #L1 certificate -- epsilon is converted
+                        self.loss, self.acc_bound = self.certificate_loss(np.sqrt(self.num_features) * epsilon, label)
+
+                else:
                     self.feedforward_pass(self.x_input)
 
-                    #L1 certificate -- epsilon is converted
                     self.loss, self.acc_bound = self.certificate_loss(np.sqrt(self.num_features) * epsilon, label)
 
-                if evaluate:
                     self.acc_bound = (self.acc_bound).numpy()
 
         if not evaluate:
