@@ -232,7 +232,7 @@ def get_missing(results_dir, experiments_list):
 
     missing = []
     for experiment in experiments_list:
-        if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testingl1l2.done'):
+        if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testing_approx_bound.done'):
             missing.append(experiment["model_name"])
     with open("missing", "w") as output:
         for row in missing:

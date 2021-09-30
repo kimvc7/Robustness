@@ -82,10 +82,6 @@ def test(config):
                 else:
                     x_batch, y_batch = data.test.next_batch(batch_size)
 
-                clipped_advs_all = []
-                raw_advs_all = []
-
-
                 raw_advs, clipped_advs, success = attack(fmodel, tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
                                                          epsilons=epsilon)
 
@@ -99,7 +95,7 @@ def test(config):
 
                 if (iter == 0) and dataset == 'test':
                     with open(config['model_dir'] + '/results/examples' + name_attack + '.pkl', 'wb') as f:
-                        pickle.dump([clipped_advs_all, raw_advs_all], f)
+                        pickle.dump([clipped_advs, raw_advs], f)
 
             acc = {k: acc[k]/num_iter for k in acc.keys()}
 

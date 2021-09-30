@@ -28,7 +28,7 @@ class RobustifyNetwork(tf.keras.Model):
                         evaluate=False, type_robust=type_robust)
 
     @tf.function
-    def evaluate(self, input, label, epsilon, step=-1, summary=None, type_robust='linf'):
+    def evaluate(self, input, label, epsilon, step=-1, summary=None, type_robust='linf', evaluate_bound=False):
         self._full_call(input, label, epsilon, step=step, robust=True,
                         evaluate=True, summary=summary, type_robust=type_robust)
 
@@ -36,7 +36,11 @@ class RobustifyNetwork(tf.keras.Model):
         self._full_call(input, label, epsilon,  robust=True,  type_robust='certificate',
                       evaluate=True)
 
-    def _full_call(self, input, label, epsilon, robust=True, evaluate=False,
+    def evaluate_approx_bound(self, input, label, epsilon, type_robust):
+        self._full_call(input, label, epsilon,  robust=True,  type_robust=type_robust,
+                      evaluate=True, evaluate_bound=True)
+
+    def _full_call(self, input, label, epsilon, robust=True, evaluate=False, evaluate_bound=False,
                  summary=None, step=-1, type_robust='linf'):
 
         self.x_input = input
@@ -112,7 +116,7 @@ class RobustifyNetwork(tf.keras.Model):
                 else:
                     self.feedforward_pass(self.x_input)
 
-                    self.loss, self.acc_bound = self.certificate_loss(np.sqrt(self.num_features) * epsilon, label)
+                    self.loss, self.acc_bound = self.certificate_loss(epsilon, label)
 
                     self.acc_bound = (self.acc_bound).numpy()
 
@@ -132,6 +136,10 @@ class RobustifyNetwork(tf.keras.Model):
             correct_prediction = tf.equal(self.y_pred, label)
             self.num_correct = tf.reduce_sum(tf.cast(correct_prediction, tf.int64))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+            if evaluate_bound==True:
+                self.eval_approx_bound = (self.loss).numpy()
+                self.eval_xent = (self.xent).numpy()
 
             if summary:
                 with summary.as_default():

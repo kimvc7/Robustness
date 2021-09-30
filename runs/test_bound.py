@@ -58,6 +58,8 @@ def test_bound(config):
         0.5,
         1.0,
     ]
+    epsilons_l2 = list(np.sqrt(num_features) * np.array(epsilons_inf))
+    epsilons_inf = epsilons_inf + epsilons_l2
 
     tf.executing_eagerly()
     num_iter = 10*FACTOR_MEMORY
@@ -75,7 +77,7 @@ def test_bound(config):
             for epsilon in epsilons_inf:
 
                 model.evaluate_bound(tf.cast(x_batch, tf.float32), tf.cast(y_batch, tf.int64),
-                                                 epsilon=epsilon*model.num_features)
+                                                 epsilon=epsilon)
                 tmp_acc += [model.acc_bound]
 
             if iter == 0:
