@@ -23,3 +23,15 @@ Generate dataset configuration files:
 ```
 python3 main.py --run=config --config=generate_datasets
 ```
+
+
+```
+python3 main.py --run=config --experiment_name=vision --config=generate
+python3 main.py --run=config --experiment_name=uci_all --config=generate
+```
+
+
+
+```
+python3 main.py --run=train --experiment_name=vision --experiment_id=0
+```
