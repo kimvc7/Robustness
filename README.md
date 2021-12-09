@@ -5,12 +5,17 @@ This repository is the official implementation of the paper "A Robust Optimizati
 
 ## Requirements 
 
-Pull the following docker container and run the code there:
+Docker needs to be installed in your system.
 
+
+Pull the following docker container:
 ```
 docker pull xboixbosch/tf
 ```
-
+Then, run bash in the container and execute all the code there.
+```
+docker run -v <CODE PATH>:/home/neuro/Robustness -it xboixbosch/tf bash
+```
 
 ## Preparing the datasets and the experiments
 
