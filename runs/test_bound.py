@@ -26,7 +26,7 @@ def test_bound(config):
         print("Not trained")
         return
 
-    if os.path.isfile(config["model_dir"] + '/results/testing_bound.done') and not config["restart"]:
+    if os.path.isfile(config["model_dir"] + '/results/testing_bound_extra.done') and not config["restart"]:
         print("Already tested")
         #return
 
@@ -42,7 +42,7 @@ def test_bound(config):
         model.load_all(tf.train.latest_checkpoint(config['model_dir'] + '/checkpoints/'), load_optimizer=False)
 
     model.set_mode('test')
-
+    '''
     epsilons_inf = [
         0.0,
         0.0002,
@@ -58,6 +58,17 @@ def test_bound(config):
         0.5,
         1.0,
     ]
+    '''
+    epsilons_inf = [
+            2.0,
+            5.0,
+            10.0,
+            15.0,
+            20.0,
+            30.0,
+            50.0
+        ]
+
     epsilons_l2 = list(np.sqrt(num_features) * np.array(epsilons_inf))
     epsilons_inf = epsilons_inf + epsilons_l2
 
@@ -90,13 +101,13 @@ def test_bound(config):
 
         print(acc)
 
-        with open(config['model_dir'] + '/results/acc_' + dataset + '_' + 'bound' + '.pkl', 'wb') as f:
+        with open(config['model_dir'] + '/results/acc2_' + dataset + '_' + 'bound' + '.pkl', 'wb') as f:
             pickle.dump(acc, f)
 
     print("\n Bound accuracy done")
     sys.stdout.flush()
 
-    open(config['model_dir'] + '/results/testing_bound.done', 'w').close()
+    open(config['model_dir'] + '/results/testing_bound_extra.done', 'w').close()
 
 
 

@@ -26,7 +26,7 @@ def test(config):
         print("Not trained")
         return
 
-    if os.path.isfile(config["model_dir"] + '/results/testing.done') and not config["restart"]:
+    if os.path.isfile(config["model_dir"] + '/results/testing_extra.done') and not config["restart"]:
         print("Already tested")
         return
 
@@ -49,6 +49,7 @@ def test(config):
     fmodel: Model = TensorFlowModel(model, bounds=(config["bound_lower"], config["bound_upper"]), preprocessing=pre)
     fmodel = fmodel.transform_bounds((config["bound_lower"], config["bound_upper"]))
 
+    ''' 
     epsilons_inf = [
             0.0,
             0.0002,
@@ -63,6 +64,17 @@ def test(config):
             0.3,
             0.5,
             1.0,
+        ]
+    '''
+
+    epsilons_inf = [
+            2.0,
+            5.0,
+            10.0,
+            15.0,
+            20.0,
+            30.0,
+            50.0
         ]
     epsilons_l2 = list(np.sqrt(num_features) * np.array(epsilons_inf))#list(10 * np.array(epsilons_inf))#
 
@@ -94,18 +106,18 @@ def test(config):
                     acc = {k: acc[k] + tmp[k] for k in acc.keys()}
 
                 if (iter == 0) and dataset == 'test':
-                    with open(config['model_dir'] + '/results/examples' + name_attack + '.pkl', 'wb') as f:
+                    with open(config['model_dir'] + '/results/examples2' + name_attack + '.pkl', 'wb') as f:
                         pickle.dump([clipped_advs, raw_advs], f)
 
             acc = {k: acc[k]/num_iter for k in acc.keys()}
 
-            with open(config['model_dir'] + '/results/acc_' + dataset + '_' + name_attack + '.pkl', 'wb') as f:
+            with open(config['model_dir'] + '/results/acc2_' + dataset + '_' + name_attack + '.pkl', 'wb') as f:
                 pickle.dump(acc, f)
 
         print("\n Attack " + name_attack + " done")
         sys.stdout.flush()
 
-    open(config['model_dir'] + '/results/testing.done', 'w').close()
+    open(config['model_dir'] + '/results/testing_extra.done', 'w').close()
 
 
 

@@ -67,24 +67,10 @@ if not args.run == 'config':
         run.test_approx_bound(config)
 
 else:
-    if args.experiment_name == 'mnist':
-        import runs.config_experiments_mnist as run_exp
-    elif args.experiment_name == 'mnist_std':
-        import runs.config_experiments_mnist_standarized as run_exp
-    elif args.experiment_name == 'cifar':
-        import runs.config_experiments_cifar as run_exp
-    elif args.experiment_name == 'uci':
-        import runs.config_experiments_uci as run_exp
-    elif args.experiment_name == 'uci_all':
+    if args.experiment_name == 'uci_all':
         import runs.config_experiments_uci_all as run_exp
-    elif args.experiment_name == 'fashion':
-        import runs.config_experiments_fashion as run_exp
-    elif args.experiment_name == 'onelayer':
-        import runs.config_experiments_onelayer as run_exp
     elif args.experiment_name == 'vision':
         import runs.config_experiments_vision as run_exp
-    elif args.experiment_name == 'vision_small':
-        import runs.config_experiments_vision_small as run_exp
 
 
     if args.config == 'generate':

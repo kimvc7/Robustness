@@ -217,7 +217,7 @@ def check_uncompleted(results_dir, experiments_list):
     for experiment in experiments_list:
         if experiment["skip"]:
             continue
-        if not os.path.isfile(results_dir + experiment["model_name"] + '/results/training.done'):
+        if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testing_bound_extra.done'):
             print(experiment["model_name"], end = ',')
 
     print("\n Check train completed")
@@ -244,7 +244,7 @@ def get_missing(results_dir, experiments_list):
 
     missing = []
     for experiment in experiments_list[1:]:
-        if not os.path.isfile(results_dir + experiment["model_name"] + '/results/training.done'):
+        if not os.path.isfile(results_dir + experiment["model_name"] + '/results/testing_bound_extra.done'):
             missing.append(experiment["model_name"])
     with open("missing", "w") as output:
         for row in missing:

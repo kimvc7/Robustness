@@ -6,10 +6,10 @@
 #SBATCH --mem=8GB
 #SBATCH -t 24:00:00
 #SBATCH -D ./log/
-#SBATCH --exclude=node007,node059,node097,node021
+#SBATCH --exclude=node007,node059,node097,node021,node090,node039
 #SBATCH --partition=cbmm
 #SBATCH --gres=gpu:1
-#SBATCH --constraint=16GB
+
 
 
 cd /om2/user/xboix/src/Robustness/
@@ -26,7 +26,7 @@ do
     --experiment_id=$((40*$number +${SLURM_ARRAY_TASK_ID})) \
     --filesystem=om \
     --experiment_name=vision \
-    --run=train \
+    --run=test_bound \
     --gpu_id=0 \
     --missing=True
 
