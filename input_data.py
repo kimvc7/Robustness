@@ -122,14 +122,14 @@ def load_data_set(results_dir, data_set, seed=None, reshape=True, standarized=Fa
           or config["dataset_name"] == "fashion_mnist":
     if config["dataset_name"] == "cifar":
       (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
-
+      '''
       X_train = X_train[:,2:-2,2:-2,:]
       X_test = X_test[:,2:-2,2:-2,:]
       print(X_train.shape)
       '''
       X_train = X_train[:,::re_size,::re_size,:]
       X_test = X_test[:,::re_size,::re_size,:]
-      '''
+
       num_features = int(int(X_train.shape[1])*int(X_train.shape[2])*X_train.shape[3])
       color = True
     if config["dataset_name"] == "mnist":
