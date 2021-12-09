@@ -4,40 +4,24 @@ import argparse
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("--experiment_name", type=str, default="",
-                            help="config instruction")
+                            help="either 'uci_all' or 'vision'")
 parser.add_argument("--experiment_id", type=int, default="0",
                             help="id of json file")
 parser.add_argument("--run", type=str, default="idle",
                             help="run to perform on experiment <id>")
-parser.add_argument("--filesystem", type=str, default="local",
-                            help="filesystem")
 parser.add_argument("--gpu_id", type=str, default="",
                             help="gpu IDs")
 parser.add_argument("--config", type=str, default="",
                             help="config instruction")
-parser.add_argument("--missing", type=bool, default=False)
-
 
 args = parser.parse_args()
 print(args)
-
-if args.missing==True:
-    missing = []
-    with open("missing", 'r') as file:
-        for row in file:
-            missing.append(int(row[:-1]))
-    args.experiment_id = missing[args.experiment_id]
 
 print("Experiment ID: " + str(args.experiment_id))
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
 
-if args.filesystem == 'local':
-    results_dir = './results/'
-elif args.filesystem == 'om':
-    results_dir = '/vast/robustness/'
-
-
+results_dir = './results/'
 full_results_dir = results_dir + args.experiment_name + '/'
 
 if not args.run == 'config':
