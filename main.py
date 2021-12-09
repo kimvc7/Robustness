@@ -62,11 +62,3 @@ else:
     elif args.config == 'generate_datasets':
         import runs.config_datasets as run
         run.config_datasets(results_dir)
-
-    elif args.config == 'check':
-        experiment_list = run_exp.config_experiments(full_results_dir, create_json=False)
-        run_exp.check_uncompleted(full_results_dir, experiment_list)
-
-    elif args.config == 'get_missing':
-        experiment_list = run_exp.config_experiments(full_results_dir, create_json=False)
-        run_exp.get_missing(full_results_dir, experiment_list)

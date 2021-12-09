@@ -19,4 +19,7 @@ docker run -v <CODE PATH>:/home/neuro/Robustness -it xboixbosch/tf bash
 
 ## Preparing the datasets and the experiments
 
-
+Generate dataset configuration files:
+```
+python3 main.py --run=config --config=generate_datasets
+```
