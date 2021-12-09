@@ -1,0 +1,1 @@
+{"dataset_id": 1, "dataset_name": "cifar", "validation_size": 1000, "testing_size": 1000, "num_classes": 10}

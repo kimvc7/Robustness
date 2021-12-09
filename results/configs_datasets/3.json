@@ -1,0 +1,1 @@
+{"dataset_id": 3, "dataset_name": "Gauss_MLP-1", "num_data": 1000.0, "num_features": 10, "trial": 1, "validation_size": 1000, "testing_size": 1000, "num_classes": 2, "name_file": "10_1000.0_1.pickle"}
