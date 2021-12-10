@@ -49,4 +49,8 @@ To run the UCI experiment just replace `vision` by `uci_all`.
 
 4. Analyze the results:
 
-Use the jupter notebooks in `notebooks` folder.
+Use the jupter notebooks in `notebooks` folder. `UCI.ipynb` and `Vision.ipynb` do the cross-validation for each attack and rho and save all relevant information in a csv file. `plots.ipynb` displays the results as in the paper (the code pulls the csv files for the experiments we run for the paper from a google drive shared folder).
+
+
+## Demo
+Check out `demo.ipynb` for an example on using the code ---runs on google colaboratory.
