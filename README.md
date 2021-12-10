@@ -33,7 +33,7 @@ python3 main.py --run=config --experiment_name=uci_all --config=generate
 ```
 These command will create ~5K json files for the vision datasets and ~35K json files for the UCI datasets. Each file
 describes the network, hyperparameters, dataset, etc. of an experiment. The name of the file is a number that corresponds
-to the 'experiment_id'.
+to the `experiment_id`.
 
 3. Run the training and testing:
 
@@ -43,6 +43,7 @@ python3 main.py --run=train --experiment_name=vision --experiment_id=<experiment
 python3 main.py --run=test --experiment_name=vision --experiment_id=<experiment_id> --gpu_id=0
 python3 main.py --run=test_bound --experiment_name=vision --experiment_id=<experiment_id> --gpu_id=0
 ```
-where 'experiment_id' corresponds to the number of the experiment and 'gpu_id' indicates the ID of the GPUs to run the jon (the current version of the code does not support multi-GPU).
-To run the UCI experiment just replace 'vision' by 'uci_all'.
+where `experiment_id` corresponds to the number of the experiment and `gpu_id` indicates the ID of the GPUs to run use 
+(the current version of the code does not support multi-GPU).
+To run the UCI experiment just replace `vision` by `uci_all`.
 
