@@ -47,3 +47,6 @@ where `experiment_id` corresponds to the number of the experiment and `gpu_id` i
 (the current version of the code does not support multi-GPU).
 To run the UCI experiment just replace `vision` by `uci_all`.
 
+4. Analyze the results:
+
+Use the jupter notebooks in `notebooks` folder.
