@@ -3,6 +3,12 @@ This repository is the official implementation of the paper "A Robust Optimizati
 
 >We develop two new methods for training neural networks that are robust against input perturbations. The first method (Approximated Robust Upper Bound or aRUB) uses the first order approximation of the network as well as basic tools from Linear Robust Optimization to obtain an approximate upper bound of the adversarial loss that can be easily implemented. The second method (Robust Upper Bound or RUB), computes instead an exact upper bound of the adversarial loss by extending state-of-the-art tools from Robust Optimization to neural networks with ReLU activation function. Across a variety of tabular and vision data sets we present the following three results. Regarding adversarial accuracies, we find that for large perturbations RUB has a performance edge, while for smaller perturbations aRUB matches the performance of state-of-the-art methods. In terms of computational speed, we observe that both aRUB and RUB run faster than adversarial training at the expense of an increase in memory. Finally, with regard to natural accuracy, we demonstrate that training based on robust optimization has an edge over standard training. 
 
+## Demo
+Check out `demo.ipynb` in google colaboratory for a simple example on using the code to train a network:
+
+<a href="https://colab.research.google.com/github/kimvc7/Robustness/blob/main/demo.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+
+
 ## Requirements 
 
 Docker needs to be installed in your system. Pull the following docker container:
@@ -52,5 +58,3 @@ To run the UCI experiment just replace `vision` by `uci_all`.
 Use the jupter notebooks in `notebooks` folder. `UCI.ipynb` and `Vision.ipynb` do the cross-validation for each attack and rho and save all relevant information in a csv file. `plots.ipynb` displays the results as in the paper (the code pulls the csv files for the experiments we run for the paper from a google drive shared folder).
 
 
-## Demo
-Check out `demo.ipynb` for an example on using the code ---runs on google colaboratory.
