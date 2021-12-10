@@ -6,7 +6,7 @@ This repository is the official implementation of the paper "A Robust Optimizati
 ## Demo
 Check out `demo.ipynb` in google colaboratory for a simple example on using the code to train a network:
 
-<a href="https://colab.research.google.com/github/kimvc7/Robustness/blob/main/demo.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+<a href="https://colab.research.google.com/github/kimvc7/Robustness/blob/main/demo.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Demo In Colab!"/></a>
 
 
 ## Requirements 
