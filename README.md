@@ -24,14 +24,21 @@ Generate dataset configuration files:
 python3 main.py --run=config --config=generate_datasets
 ```
 
-
+All trained networks are determined in `runs/config_experiment_uci_all.py` and `runs/config_experiment_vision.py`. These scripts generate one configuration file per network to train and evaluate.
+To generate all the configuration files run the following:
 ```
 python3 main.py --run=config --experiment_name=vision --config=generate
 python3 main.py --run=config --experiment_name=uci_all --config=generate
 ```
+These command will create ~5K files for the vision datasets and ~35K for the UCI datasets.
 
 
-
+To train, test, and evaluate the bound use the following commands:
 ```
-python3 main.py --run=train --experiment_name=vision --experiment_id=0
+python3 main.py --run=train --experiment_name=vision --experiment_id=<experiment_id> --gpu_id=0
+python3 main.py --run=test --experiment_name=vision --experiment_id=<experiment_id> --gpu_id=0
+python3 main.py --run=test_bound --experiment_name=vision --experiment_id=<experiment_id> --gpu_id=0
 ```
+where 'gpu_id' indicates the ID of the GPUs to run the jon (the current version of the code does not support multi-GPU).
+To run the UCI experiment just replace 'vision' by 'uci_all'.
+

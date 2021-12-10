@@ -45,9 +45,6 @@ if not args.run == 'config':
     elif args.run == 'test_bound':
         import runs.test_bound as run
         run.test_bound(config)
-    elif args.run == 'test_approx_bound':
-        import runs.test_approx_bound as run
-        run.test_approx_bound(config)
 
 else:
     if args.experiment_name == 'uci_all':
