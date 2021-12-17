@@ -31,7 +31,7 @@ This generate a json file to configure each dataset.
 
 2. Generate the experiment configuration files:
 
-The configurations of all trained networks are prepared with `runs/config_experiment_uci_all.py` and `runs/config_experiment_vision.py`. These scripts generate one configuration file per network to train and evaluate.
+`runs/config_experiment_uci_all.py` and `runs/config_experiment_vision.py` generate one configuration file per network to train and evaluate.
 To generate all the configuration files run the following:
 ```
 python3 main.py --run=config --experiment_name=vision --config=generate
