@@ -49,7 +49,7 @@ def test(config):
     fmodel: Model = TensorFlowModel(model, bounds=(config["bound_lower"], config["bound_upper"]), preprocessing=pre)
     fmodel = fmodel.transform_bounds((config["bound_lower"], config["bound_upper"]))
 
-    ''' 
+
     epsilons_inf = [
             0.0,
             0.0002,
@@ -64,10 +64,6 @@ def test(config):
             0.3,
             0.5,
             1.0,
-        ]
-    '''
-
-    epsilons_inf = [
             2.0,
             5.0,
             10.0,
@@ -76,11 +72,13 @@ def test(config):
             30.0,
             50.0
         ]
-    epsilons_l2 = list(np.sqrt(num_features) * np.array(epsilons_inf))#list(10 * np.array(epsilons_inf))#
 
-    attacks = [L1PGD(), L1FastGradientAttack(), LinfPGD(), L2PGD(), FGSM(), FGM()]#[L1PGD(), L1FastGradientAttack(), L2PGD(), FGM()] #[LinfPGD(), L2PGD(), FGSM(), FGM()]#
-    name_attacks = ["l1_pgd_norm", "l1_fgm_norm", "linf_pgd", "l2_pgd_norm", "linf_fgsm", "l2_fgm_norm"] #["l1_pgd_norm", "l1_fgm_norm", "l2_pgd_norm", "l2_fgm_norm"] #["linf_pgd", "l2_pgd", "linf_fgsm", "l2_fgm"]#
-    epsilons = [epsilons_l2, epsilons_l2, epsilons_inf, epsilons_l2, epsilons_inf, epsilons_l2]#[epsilons_l2, epsilons_l2, epsilons_l2, epsilons_l2]#[epsilons_inf, epsilons_l2, epsilons_inf, epsilons_l2]#
+
+    epsilons_l2 = list(np.sqrt(num_features) * np.array(epsilons_inf))
+
+    attacks = [L1PGD(), L1FastGradientAttack(), LinfPGD(), L2PGD(), FGSM(), FGM()]
+    name_attacks = ["l1_pgd_norm", "l1_fgm_norm", "linf_pgd", "l2_pgd_norm", "linf_fgsm", "l2_fgm_norm"] 
+    epsilons = [epsilons_l2, epsilons_l2, epsilons_inf, epsilons_l2, epsilons_inf, epsilons_l2]
 
     num_iter = int(10)# * (int(256/batch_size)))
     for attack, name_attack, epsilon in zip(attacks, name_attacks, epsilons):
