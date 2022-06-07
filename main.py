@@ -21,7 +21,7 @@ print("Experiment ID: " + str(args.experiment_id))
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
 
-results_dir = './results/'
+results_dir = '/om2/user/xboix/robustness/'
 full_results_dir = results_dir + args.experiment_name + '/'
 
 if not args.run == 'config':
@@ -51,6 +51,8 @@ else:
         import runs.config_experiments_uci_all as run_exp
     elif args.experiment_name == 'vision':
         import runs.config_experiments_vision as run_exp
+    elif args.experiment_name == 'cifar':
+        import runs.config_experiments_cifar as run_exp
 
 
     if args.config == 'generate':

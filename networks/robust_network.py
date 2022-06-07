@@ -16,6 +16,9 @@ def get_network(name_net, config, num_features):
     elif name_net == 'ThreeLayer' or name_net == "ThreeLayer+pgd":
         from networks.ThreeLayer import robustThreeLayer as ThreeLayer
         return ThreeLayer(config, num_features)
+    elif name_net == 'ThreeLayer_scalable':
+        from networks.ThreeLayer_scalable import robustThreeLayer_scalable as ThreeLayer_scalable
+        return ThreeLayer_scalable(config, num_features)
     elif name_net == 'CNN2' or name_net == "CNN2+pgd":
         from networks.CNN2 import robustCNN2 as CNN2
         return CNN2(config, num_features)

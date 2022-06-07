@@ -23,8 +23,8 @@ def test(config):
     backbone_name = config['backbone']
 
     if not os.path.isfile(config["model_dir"] + '/results/training.done'):
-        print("Not trained")
-        return
+        print("Not trained") 
+        #return
 
     if os.path.isfile(config["model_dir"] + '/results/testing_extra.done') and not config["restart"]:
         print("Already tested")

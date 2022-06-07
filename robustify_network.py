@@ -116,7 +116,9 @@ class RobustifyNetwork(tf.keras.Model):
                 else:
                     self.feedforward_pass(self.x_input)
 
-                    self.loss, self.acc_bound = self.certificate_loss(epsilon, label)
+                    self.loss, self.acc_bound, argmax = self.certificate_loss(epsilon, label)
+
+                    self.argmax = [ tmp_argmax.numpy() for tmp_argmax in argmax]
 
                     self.acc_bound = (self.acc_bound).numpy()
 

@@ -104,7 +104,7 @@ class robustThreeLayer(robustify_network.RobustifyNetwork):
 
         robust_objective = 0
         robust_acc = 0
-
+        argmax = []
         for k in range(self.num_classes):
             mask = tf.equal(labels_r, k)
             g_3k_pos1 = tf.boolean_mask(self.g_3_pos1, mask)
@@ -117,8 +117,10 @@ class robustThreeLayer(robustify_network.RobustifyNetwork):
             g_4k_pos = tf.matmul(tf.nn.relu(g_3k_pos1 + self.b3), tf.nn.relu(W4_k)) - tf.matmul(tf.multiply(-g_3k_pos2 + self.b3, filt3_k), tf.nn.relu(-W4_k))
             g_4k_neg = tf.matmul(tf.nn.relu(g_3k_neg1 + self.b3), tf.nn.relu(W4_k)) - tf.matmul(tf.multiply(-g_3k_neg2 + self.b3, filt3_k), tf.nn.relu(-W4_k))
             g_4k_max = tf.maximum(g_4k_pos, g_4k_neg)
-            g_4k = tf.nn.max_pool(tf.reshape(g_4k_max, [1, tf.shape(g_4k_max)[0], self.num_classes, 1]), [1, self.num_features, 1, 1], [1, self.num_features, 1, 1], "SAME") + \
+            g_4k, tmp_argmax = tf.nn.max_pool_with_argmax(tf.reshape(g_4k_max, [1, tf.shape(g_4k_max)[0], self.num_classes, 1]), [1, self.num_features, 1, 1], [1, self.num_features, 1, 1], "SAME") + \
                    tf.reshape(self.b4  - self.b4[k], [1, 1, self.num_classes, 1])
+
+            argmax += [tmp_argmax]
 
             robust_acc +=  tf.reduce_sum(tf.cast(tf.reduce_all(tf.less_equal(g_4k, tf.constant([0.0])), axis = 2), tf.float32))
             robust_objective += tf.reduce_sum(tf.reduce_logsumexp(g_4k, axis = 2))
