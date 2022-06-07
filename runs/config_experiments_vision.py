@@ -17,6 +17,7 @@ def config_experiments(results_dir, create_json=True):
     lr = 1e-6
     epsilon = 1
     epsilon_pgd_training = 1
+    restart = False
 
     id = 0
     experiment_list = []
